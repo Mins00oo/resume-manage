@@ -1,99 +1,715 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { dashboardApi, type DashboardPeriod } from '../lib/api/dashboard';
-import SummaryStrip from '../components/dashboard/SummaryStrip';
-import MasterResumeCard from '../components/dashboard/MasterResumeCard';
-import UpcomingDeadlinesCard from '../components/dashboard/UpcomingDeadlinesCard';
-import PassRateCards from '../components/dashboard/PassRateCards';
-import ActivityGrass from '../components/dashboard/ActivityGrass';
-import PeriodSelector from '../components/dashboard/PeriodSelector';
+import { mockDashboard, mockApplies, mockMe } from '../mocks/data';
+import {
+  IconArrowUpRight,
+  IconCalendar,
+  IconClock,
+  IconFire,
+  IconPlus,
+  IconSparkles,
+} from '../components/icons/Icons';
+import { cn } from '../lib/cn';
+import { statusLabel } from '../lib/statusLabel';
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const [period, setPeriod] = useState<DashboardPeriod>('3m');
+  const data = mockDashboard;
 
-  const { data, isLoading, isError, refetch, isFetching } = useQuery({
-    queryKey: ['dashboard', 'summary', period],
-    queryFn: () => dashboardApi.summary(period),
-  });
+  const upcoming = useMemo(
+    () =>
+      mockApplies
+        .filter((a) => a.deadline && new Date(a.deadline) >= new Date('2026-04-15'))
+        .sort((a, b) => (a.deadline! < b.deadline! ? -1 : 1))
+        .slice(0, 5),
+    [],
+  );
 
-  const noActivity =
-    !!data &&
-    data.summaryStrip.draft === 0 &&
-    data.summaryStrip.submitted === 0 &&
-    data.summaryStrip.inProgress === 0 &&
-    data.summaryStrip.accepted === 0 &&
-    data.summaryStrip.rejected === 0;
+  const focus = upcoming[0];
 
   return (
     <div className="space-y-6">
-      <header className="flex items-center justify-between">
+      {/* Greeting row */}
+      <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">대시보드</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            지원 현황을 한눈에 확인하세요.
-          </p>
-        </div>
-        <PeriodSelector value={period} onChange={setPeriod} />
-      </header>
-
-      {isLoading && (
-        <div className="rounded-xl bg-white border border-slate-200 p-10 text-center">
-          <p className="text-sm text-slate-500">대시보드를 불러오는 중...</p>
-        </div>
-      )}
-
-      {isError && (
-        <div className="rounded-xl bg-rose-50 border border-rose-200 p-6 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-rose-800">
-              대시보드를 불러오지 못했어요
-            </p>
-            <p className="text-xs text-rose-700 mt-1">
-              네트워크 상태를 확인하고 다시 시도해주세요.
-            </p>
+          <div className="text-sm text-slate-500 font-medium">
+            안녕하세요, {mockMe.name.slice(-2) ?? mockMe.name}님 👋
           </div>
-          <button
-            type="button"
-            onClick={() => refetch()}
-            disabled={isFetching}
-            className="px-4 py-2 text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-60 rounded-lg transition-colors"
-          >
-            다시 시도
-          </button>
-        </div>
-      )}
-
-      {data && noActivity && (
-        <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 p-10 text-center">
-          <p className="text-base font-semibold text-slate-900">
-            아직 지원한 회사가 없어요
-          </p>
-          <p className="text-sm text-slate-500 mt-1 mb-5">
-            첫 번째 지원을 등록하고 커리어 여정을 시작해보세요.
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate('/applies/new')}
-            className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
-          >
-            + 새 지원 등록
-          </button>
-        </div>
-      )}
-
-      {data && !noActivity && (
-        <>
-          <SummaryStrip data={data.summaryStrip} />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <MasterResumeCard data={data.masterResume} />
-            <UpcomingDeadlinesCard data={data.upcomingDeadlines} />
+          <div className="text-[22px] font-bold tracking-tight text-slate-900 mt-0.5">
+            오늘도 커리어 한 걸음 나아가볼까요?
           </div>
-          <PassRateCards data={data.passRates} period={period} />
-          <ActivityGrass data={data.activityGrass} period={data.period} />
-        </>
+        </div>
+        <div className="hidden md:flex items-center gap-2">
+          <PeriodPill label="최근 3개월" active />
+          <PeriodPill label="6개월" />
+          <PeriodPill label="전체" />
+        </div>
+      </div>
+
+      {/* ---------- Focus hero ---------- */}
+      <section className="grid grid-cols-12 gap-5">
+        {/* Focus card: takes 7 cols */}
+        <div className="col-span-12 lg:col-span-7">
+          <FocusCard
+            focus={focus}
+            onOpen={() => focus && navigate(`/applies/${focus.id}`)}
+            onAddNew={() => navigate('/applies/new')}
+          />
+        </div>
+        {/* Funnel: takes 5 cols */}
+        <div className="col-span-12 lg:col-span-5">
+          <PipelineFunnel data={data.pipeline} />
+        </div>
+      </section>
+
+      {/* ---------- KPI row ---------- */}
+      <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <KpiCard
+          label="전체 지원"
+          value={data.summaryStrip.total}
+          delta="+3"
+          hint="지난달 대비"
+          accent="indigo"
+        />
+        <KpiCard
+          label="진행 중"
+          value={data.summaryStrip.inProgress}
+          hint="활발한 지원"
+          accent="violet"
+        />
+        <KpiCard
+          label="서류 합격률"
+          value={`${data.passRates.document.rate}%`}
+          delta={`${data.passRates.document.passed}/${data.passRates.document.total}`}
+          accent="sky"
+        />
+        <KpiCard
+          label="최종 합격"
+          value={data.summaryStrip.accepted}
+          hint="이번 사이클"
+          accent="emerald"
+        />
+      </section>
+
+      {/* ---------- Middle row: Pass rates + Resume card ---------- */}
+      <section className="grid grid-cols-12 gap-5">
+        <div className="col-span-12 lg:col-span-8">
+          <PassRatesBoard data={data.passRates} />
+        </div>
+        <div className="col-span-12 lg:col-span-4">
+          <MasterResumeCard />
+        </div>
+      </section>
+
+      {/* ---------- Activity heatmap ---------- */}
+      <section>
+        <ActivityHeatmap data={data.activityGrass} />
+      </section>
+
+      {/* ---------- Bottom row: Upcoming + Activity ---------- */}
+      <section className="grid grid-cols-12 gap-5">
+        <div className="col-span-12 lg:col-span-6">
+          <UpcomingList items={upcoming} onOpen={(id) => navigate(`/applies/${id}`)} />
+        </div>
+        <div className="col-span-12 lg:col-span-6">
+          <RecentActivityList />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+
+function PeriodPill({ label, active }: { label: string; active?: boolean }) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        'px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors',
+        active
+          ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/20'
+          : 'text-slate-600 hover:bg-slate-100',
       )}
+    >
+      {label}
+    </button>
+  );
+}
+
+/* ---------- Focus card ---------- */
+
+type FocusCardProps = {
+  focus: (typeof mockApplies)[number] | undefined;
+  onOpen: () => void;
+  onAddNew: () => void;
+};
+
+function FocusCard({ focus, onOpen, onAddNew }: FocusCardProps) {
+  const daysLeft = focus?.deadline
+    ? Math.max(
+        0,
+        Math.round(
+          (new Date(focus.deadline).getTime() -
+            new Date('2026-04-15').getTime()) /
+            (24 * 60 * 60 * 1000),
+        ),
+      )
+    : null;
+
+  return (
+    <div className="relative h-full rounded-2xl overflow-hidden border border-slate-900/5 shadow-[0_1px_0_rgba(15,23,42,0.03),0_12px_32px_-12px_rgba(79,70,229,0.18)]">
+      {/* BG */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a1a] via-[#1a1038] to-[#2a0f3a]" />
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-30"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 100% 0%, rgba(99,102,241,0.45), transparent 50%), radial-gradient(circle at 0% 100%, rgba(217,70,239,0.3), transparent 50%)',
+        }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-[0.05]"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+
+      <div className="relative p-6 lg:p-7 text-white h-full flex flex-col">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 border border-white/15 text-[10.5px] tracking-wide text-white/85 backdrop-blur">
+            <IconFire className="w-3.5 h-3.5 text-orange-300" />
+            오늘의 포커스
+          </span>
+          {daysLeft !== null && daysLeft <= 3 && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500/20 border border-orange-400/30 text-[10.5px] font-semibold text-orange-200">
+              D-{daysLeft}
+            </span>
+          )}
+        </div>
+
+        {focus ? (
+          <>
+            <div className="mt-5 flex-1">
+              <div className="text-[11px] tracking-[0.12em] uppercase text-white/40 font-semibold">
+                가장 가까운 마감
+              </div>
+              <div className="mt-2 flex items-center gap-3">
+                <div
+                  className="w-11 h-11 rounded-xl flex items-center justify-center text-base font-bold ring-1 ring-white/15"
+                  style={{ backgroundColor: focus.logoColor }}
+                >
+                  {focus.company[0]}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[22px] font-bold tracking-tight truncate">
+                    {focus.company}
+                  </div>
+                  <div className="text-[13px] text-white/60 truncate">
+                    {focus.position}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 grid grid-cols-3 gap-3">
+                <MiniStat label="상태" value={statusLabel(focus.currentStatus)} />
+                <MiniStat
+                  label="마감"
+                  value={focus.deadline?.replace(/-/g, '.') ?? '-'}
+                />
+                <MiniStat label="경로" value={focus.channel} />
+              </div>
+            </div>
+
+            <div className="mt-6 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onOpen}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[13px] font-semibold text-slate-900 bg-white hover:bg-white/90 transition-colors"
+              >
+                자세히 보기
+                <IconArrowUpRight className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={onAddNew}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[13px] font-medium text-white/80 bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+              >
+                <IconPlus className="w-4 h-4" />새 지원
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-white/60">
+            다가오는 마감이 없어요
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-white/[0.05] border border-white/10 px-3 py-2.5 backdrop-blur">
+      <div className="text-[10px] text-white/45 font-semibold tracking-wide uppercase">
+        {label}
+      </div>
+      <div className="text-[13px] text-white font-semibold truncate mt-0.5">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Pipeline funnel ---------- */
+
+function PipelineFunnel({ data }: { data: typeof mockDashboard.pipeline }) {
+  const max = Math.max(...data.map((d) => d.count), 1);
+  return (
+    <div className="card p-5 h-full">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wide">
+            Pipeline
+          </div>
+          <div className="text-[15px] font-bold text-slate-900 mt-0.5">
+            파이프라인 퍼널
+          </div>
+        </div>
+        <IconSparkles className="w-4 h-4 text-indigo-500" />
+      </div>
+      <div className="space-y-2">
+        {data.map((stage) => {
+          const pct = (stage.count / max) * 100;
+          return (
+            <div key={stage.label} className="flex items-center gap-3">
+              <div className="w-[72px] shrink-0 text-[11.5px] font-medium text-slate-600 text-right">
+                {stage.label}
+              </div>
+              <div className="flex-1 relative h-7 rounded-md bg-slate-100 overflow-hidden">
+                <div
+                  className="h-full rounded-md transition-all"
+                  style={{
+                    width: `${pct}%`,
+                    background: `linear-gradient(90deg, ${stage.color}, ${stage.color}dd)`,
+                  }}
+                />
+                <div className="absolute inset-0 flex items-center px-2.5">
+                  <span className="text-[11px] font-bold text-white mix-blend-luminosity">
+                    {stage.count}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- KPI card ---------- */
+
+type KpiAccent = 'indigo' | 'violet' | 'sky' | 'emerald';
+
+function KpiCard({
+  label,
+  value,
+  delta,
+  hint,
+  accent,
+}: {
+  label: string;
+  value: string | number;
+  delta?: string;
+  hint?: string;
+  accent: KpiAccent;
+}) {
+  const accentMap: Record<KpiAccent, string> = {
+    indigo: 'from-indigo-500 to-indigo-600',
+    violet: 'from-violet-500 to-violet-600',
+    sky: 'from-sky-500 to-sky-600',
+    emerald: 'from-emerald-500 to-emerald-600',
+  };
+  return (
+    <div className="card card-hover p-5 relative overflow-hidden">
+      <div
+        className={cn(
+          'absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-20 bg-gradient-to-br',
+          accentMap[accent],
+        )}
+      />
+      <div className="relative">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+          {label}
+        </div>
+        <div className="mt-2 flex items-baseline gap-2">
+          <div className="text-[28px] font-extrabold tracking-tight text-slate-900">
+            {value}
+          </div>
+          {delta && (
+            <div className="text-[11.5px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+              {delta}
+            </div>
+          )}
+        </div>
+        {hint && (
+          <div className="text-[11.5px] text-slate-500 mt-1.5">{hint}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Pass rates board ---------- */
+
+function PassRatesBoard({ data }: { data: typeof mockDashboard.passRates }) {
+  const stages = [
+    { key: 'document', label: '서류', color: '#6366F1' },
+    { key: 'coding', label: '코딩테스트', color: '#8B5CF6' },
+    { key: 'assignment', label: '과제', color: '#A855F7' },
+    { key: 'interview', label: '면접', color: '#EC4899' },
+    { key: 'final', label: '최종', color: '#10B981' },
+  ] as const;
+  return (
+    <div className="card p-5 h-full">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wide">
+            Success Rate
+          </div>
+          <div className="text-[15px] font-bold text-slate-900 mt-0.5">
+            단계별 합격률
+          </div>
+        </div>
+      </div>
+      <div className="grid grid-cols-5 gap-3">
+        {stages.map((s) => {
+          const stage = data[s.key];
+          return (
+            <div key={s.key} className="text-center">
+              <RingChart value={stage.rate} color={s.color} />
+              <div className="text-[12px] font-semibold text-slate-700 mt-2">
+                {s.label}
+              </div>
+              <div className="text-[10.5px] text-slate-500 mt-0.5">
+                {stage.passed}/{stage.total}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function RingChart({ value, color }: { value: number; color: string }) {
+  const radius = 28;
+  const c = 2 * Math.PI * radius;
+  const offset = c - (value / 100) * c;
+  return (
+    <div className="relative w-[72px] h-[72px] mx-auto">
+      <svg width={72} height={72} viewBox="0 0 72 72">
+        <circle
+          cx={36}
+          cy={36}
+          r={radius}
+          stroke="#f1f5f9"
+          strokeWidth={6}
+          fill="none"
+        />
+        <circle
+          cx={36}
+          cy={36}
+          r={radius}
+          stroke={color}
+          strokeWidth={6}
+          fill="none"
+          strokeDasharray={c}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          transform="rotate(-90 36 36)"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-[13px] font-bold text-slate-900">{value}%</span>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Master resume card ---------- */
+
+function MasterResumeCard() {
+  const navigate = useNavigate();
+  const completion = 92;
+  return (
+    <button
+      type="button"
+      onClick={() => navigate('/resumes/1')}
+      className="card card-hover p-5 h-full w-full text-left group"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wide">
+          Master Resume
+        </div>
+        <div className="pill bg-indigo-50 text-indigo-700">
+          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+          ACTIVE
+        </div>
+      </div>
+      <div className="text-[15px] font-bold text-slate-900 leading-snug">
+        마스터 이력서
+      </div>
+      <div className="text-[12px] text-slate-500 mt-1">
+        마지막 수정 4월 12일
+      </div>
+
+      {/* Progress */}
+      <div className="mt-5">
+        <div className="flex items-baseline justify-between">
+          <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
+            완성도
+          </div>
+          <div className="text-[22px] font-extrabold text-slate-900 tracking-tight">
+            {completion}
+            <span className="text-[12px] text-slate-400 font-semibold ml-0.5">
+              %
+            </span>
+          </div>
+        </div>
+        <div className="mt-1.5 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500"
+            style={{ width: `${completion}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between text-[11px] text-slate-500 mt-2.5">
+          <span>섹션 7/8 완성</span>
+          <span className="inline-flex items-center gap-1 text-indigo-600 font-semibold group-hover:gap-1.5 transition-all">
+            편집하기
+            <IconArrowUpRight className="w-3 h-3" />
+          </span>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* ---------- Heatmap (github-style grass) ---------- */
+
+function ActivityHeatmap({
+  data,
+}: {
+  data: { date: string; count: number }[];
+}) {
+  const weeks: { date: string; count: number }[][] = [];
+  let currentWeek: { date: string; count: number }[] = [];
+  data.forEach((d, i) => {
+    currentWeek.push(d);
+    if (currentWeek.length === 7 || i === data.length - 1) {
+      weeks.push(currentWeek);
+      currentWeek = [];
+    }
+  });
+
+  const color = (count: number) => {
+    if (count === 0) return '#f1f5f9';
+    if (count === 1) return '#c7d2fe';
+    if (count === 2) return '#818cf8';
+    if (count === 3) return '#6366f1';
+    return '#4338ca';
+  };
+
+  const total = data.reduce((sum, d) => sum + d.count, 0);
+  const streak = computeStreak(data);
+
+  return (
+    <div className="card p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wide">
+            Activity
+          </div>
+          <div className="text-[15px] font-bold text-slate-900 mt-0.5">
+            최근 90일 활동
+          </div>
+        </div>
+        <div className="flex items-center gap-6">
+          <Stat label="총 활동" value={`${total}회`} />
+          <Stat label="연속" value={`${streak}일`} />
+          <div className="hidden md:flex items-center gap-1.5">
+            <span className="text-[10.5px] text-slate-400">적음</span>
+            {[0, 1, 2, 3, 4].map((lv) => (
+              <div
+                key={lv}
+                className="w-3 h-3 rounded-sm"
+                style={{ backgroundColor: color(lv) }}
+              />
+            ))}
+            <span className="text-[10.5px] text-slate-400">많음</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-1 overflow-x-auto pb-1">
+        {weeks.map((week, wi) => (
+          <div key={wi} className="flex flex-col gap-1 shrink-0">
+            {week.map((d) => (
+              <div
+                key={d.date}
+                title={`${d.date} · ${d.count}회`}
+                className="w-3 h-3 rounded-sm"
+                style={{ backgroundColor: color(d.count) }}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="text-right">
+      <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
+        {label}
+      </div>
+      <div className="text-[14px] font-bold text-slate-900 mt-0.5">{value}</div>
+    </div>
+  );
+}
+
+function computeStreak(data: { date: string; count: number }[]) {
+  let streak = 0;
+  for (let i = data.length - 1; i >= 0; i--) {
+    if (data[i].count > 0) streak++;
+    else break;
+  }
+  return streak;
+}
+
+/* ---------- Upcoming list ---------- */
+
+function UpcomingList({
+  items,
+  onOpen,
+}: {
+  items: typeof mockApplies;
+  onOpen: (id: number) => void;
+}) {
+  return (
+    <div className="card p-5 h-full">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wide">
+            Upcoming
+          </div>
+          <div className="text-[15px] font-bold text-slate-900 mt-0.5">
+            다가오는 마감
+          </div>
+        </div>
+        <IconCalendar className="w-4 h-4 text-slate-400" />
+      </div>
+      {items.length === 0 ? (
+        <div className="py-10 text-center text-[13px] text-slate-500">
+          다가오는 마감이 없어요
+        </div>
+      ) : (
+        <div className="space-y-1.5">
+          {items.map((item) => {
+            const daysLeft = Math.max(
+              0,
+              Math.round(
+                (new Date(item.deadline!).getTime() -
+                  new Date('2026-04-15').getTime()) /
+                  (24 * 60 * 60 * 1000),
+              ),
+            );
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onOpen(item.id)}
+                className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors text-left group"
+              >
+                <div
+                  className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white shrink-0"
+                  style={{ backgroundColor: item.logoColor }}
+                >
+                  {item.company[0]}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13px] font-semibold text-slate-900 truncate">
+                    {item.company}
+                  </div>
+                  <div className="text-[11.5px] text-slate-500 truncate">
+                    {item.position}
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div
+                    className={cn(
+                      'text-[12px] font-bold',
+                      daysLeft <= 2
+                        ? 'text-rose-600'
+                        : daysLeft <= 5
+                          ? 'text-orange-600'
+                          : 'text-slate-700',
+                    )}
+                  >
+                    D-{daysLeft}
+                  </div>
+                  <div className="text-[10.5px] text-slate-400">
+                    {item.deadline?.slice(5).replace('-', '.')}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Recent activity list ---------- */
+
+function RecentActivityList() {
+  const items = mockDashboard.recentActivity;
+  return (
+    <div className="card p-5 h-full">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wide">
+            Recent
+          </div>
+          <div className="text-[15px] font-bold text-slate-900 mt-0.5">
+            최근 활동
+          </div>
+        </div>
+        <IconClock className="w-4 h-4 text-slate-400" />
+      </div>
+      <ol className="relative border-l border-slate-200 ml-2 space-y-4 pl-5">
+        {items.map((item) => (
+          <li key={item.id} className="relative">
+            <span className="absolute -left-[26.5px] top-1 w-3 h-3 rounded-full bg-white ring-4 ring-indigo-100 shadow-[0_0_0_1px_rgb(99_102_241_/_0.4)]" />
+            <div className="text-[13px] font-semibold text-slate-900">
+              {item.company ? `${item.company} · ` : ''}
+              {item.text}
+            </div>
+            <div className="text-[11px] text-slate-500 mt-0.5">
+              {item.at.replace(/-/g, '.')}
+            </div>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }

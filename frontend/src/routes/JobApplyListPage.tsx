@@ -1,142 +1,282 @@
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { jobApplyApi } from '../lib/api/jobApply';
-import type { JobApplyStatus } from '../types/jobApply';
-import { ALL_STATUSES, statusLabel } from '../lib/statusLabel';
-import JobApplyTable from '../components/jobapply/JobApplyTable';
+import { mockApplies } from '../mocks/data';
+import type { JobApplyStatus, EmploymentType } from '../types/jobApply';
+import {
+  IconTable,
+  IconBoard,
+  IconCalendar,
+  IconTimeline,
+  IconSearch,
+  IconPlus,
+  IconFilter,
+} from '../components/icons/Icons';
+import { cn } from '../lib/cn';
+import TableView from '../components/applies/TableView';
+import BoardView from '../components/applies/BoardView';
+import CalendarView from '../components/applies/CalendarView';
+import TimelineView from '../components/applies/TimelineView';
+
+type ViewMode = 'table' | 'board' | 'calendar' | 'timeline';
+
+const VIEWS: { key: ViewMode; label: string; Icon: typeof IconTable }[] = [
+  { key: 'table', label: '테이블', Icon: IconTable },
+  { key: 'board', label: '보드', Icon: IconBoard },
+  { key: 'calendar', label: '캘린더', Icon: IconCalendar },
+  { key: 'timeline', label: '타임라인', Icon: IconTimeline },
+];
+
+type StageFilter = 'all' | 'active' | 'passed' | 'failed';
+
+const STAGE_FILTERS: { key: StageFilter; label: string }[] = [
+  { key: 'all', label: '전체' },
+  { key: 'active', label: '진행중' },
+  { key: 'passed', label: '합격/통과' },
+  { key: 'failed', label: '탈락' },
+];
+
+function matchStageFilter(status: JobApplyStatus, filter: StageFilter): boolean {
+  if (filter === 'all') return true;
+  if (filter === 'passed')
+    return (
+      status === 'FINAL_ACCEPTED' ||
+      status === 'INTERVIEW_PASSED' ||
+      status === 'CODING_PASSED' ||
+      status === 'DOCUMENT_PASSED' ||
+      status === 'ASSIGNMENT_PASSED'
+    );
+  if (filter === 'failed')
+    return (
+      status === 'FINAL_REJECTED' ||
+      status === 'INTERVIEW_FAILED' ||
+      status === 'CODING_FAILED' ||
+      status === 'DOCUMENT_FAILED' ||
+      status === 'ASSIGNMENT_FAILED'
+    );
+  // active
+  return (
+    status === 'DRAFT' ||
+    status === 'SUBMITTED' ||
+    status === 'CODING_IN_PROGRESS' ||
+    status === 'ASSIGNMENT_IN_PROGRESS' ||
+    status === 'INTERVIEW_IN_PROGRESS'
+  );
+}
 
 export default function JobApplyListPage() {
   const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState<JobApplyStatus | ''>('');
+  const [view, setView] = useState<ViewMode>('table');
+  const [stage, setStage] = useState<StageFilter>('all');
   const [search, setSearch] = useState('');
-  const [appliedSearch, setAppliedSearch] = useState('');
+  const [employment, setEmployment] = useState<EmploymentType | ''>('');
 
-  const { data, isLoading, isError, refetch, isFetching } = useQuery({
-    queryKey: ['job-applies', statusFilter || null, appliedSearch || null],
-    queryFn: () =>
-      jobApplyApi.list({
-        status: statusFilter || undefined,
-        search: appliedSearch || undefined,
-      }),
-  });
+  const filtered = useMemo(() => {
+    return mockApplies.filter((a) => {
+      if (!matchStageFilter(a.currentStatus, stage)) return false;
+      if (employment && a.employmentType !== employment) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        const hay = `${a.company} ${a.position} ${a.tags.join(' ')}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [stage, search, employment]);
 
-  const hasFilter = statusFilter !== '' || appliedSearch !== '';
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setAppliedSearch(search.trim());
-  };
-
-  const emptyMessage = useMemo(() => {
-    if (hasFilter) return '조건에 맞는 지원 내역이 없어요.';
-    return '아직 등록된 지원이 없어요. 첫 번째 지원을 등록해보세요.';
-  }, [hasFilter]);
+  const stats = useMemo(() => {
+    const all = mockApplies;
+    const active = all.filter(
+      (a) =>
+        a.currentStatus !== 'FINAL_ACCEPTED' &&
+        a.currentStatus !== 'FINAL_REJECTED' &&
+        !a.currentStatus.endsWith('_FAILED'),
+    ).length;
+    const passed = all.filter((a) => a.currentStatus === 'FINAL_ACCEPTED').length;
+    const failed = all.filter(
+      (a) =>
+        a.currentStatus.endsWith('_FAILED') ||
+        a.currentStatus === 'FINAL_REJECTED',
+    ).length;
+    const rate = all.length
+      ? Math.round(
+          (all.filter((a) => !a.currentStatus.endsWith('_FAILED')).length /
+            all.length) *
+            100,
+        )
+      : 0;
+    return { total: all.length, active, passed, failed, rate };
+  }, []);
 
   return (
     <div className="space-y-6">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">지원 내역</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            등록된 지원 상황을 관리하세요.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => navigate('/applies/new')}
-          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
-        >
-          + 새 지원
-        </button>
-      </header>
+      {/* ---------- Summary strip ---------- */}
+      <section className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <StatMini label="전체 지원" value={stats.total} color="indigo" />
+        <StatMini label="진행 중" value={stats.active} color="violet" />
+        <StatMini label="최종 합격" value={stats.passed} color="emerald" />
+        <StatMini label="탈락" value={stats.failed} color="rose" />
+        <StatMini label="통과율" value={`${stats.rate}%`} color="amber" />
+      </section>
 
-      <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-xl border border-slate-200">
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as JobApplyStatus | '')}
-          className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        >
-          <option value="">전체 상태</option>
-          {ALL_STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {statusLabel(s)}
-            </option>
-          ))}
-        </select>
-        <form onSubmit={handleSearchSubmit} className="flex-1 flex gap-2">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="회사명 검색"
-            className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-          <button
-            type="submit"
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
-          >
-            검색
-          </button>
-        </form>
-        {hasFilter && (
-          <button
-            type="button"
-            onClick={() => {
-              setStatusFilter('');
-              setSearch('');
-              setAppliedSearch('');
-            }}
-            className="px-3 py-2 text-xs text-slate-500 hover:text-slate-900 transition-colors"
-          >
-            초기화
-          </button>
-        )}
-      </div>
-
-      {isLoading && (
-        <div className="rounded-xl bg-white border border-slate-200 p-10 text-center">
-          <p className="text-sm text-slate-500">지원 내역을 불러오는 중...</p>
-        </div>
-      )}
-
-      {isError && (
-        <div className="rounded-xl bg-rose-50 border border-rose-200 p-6 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-rose-800">
-              지원 내역을 불러오지 못했어요
-            </p>
-            <p className="text-xs text-rose-700 mt-1">
-              잠시 후 다시 시도해주세요.
-            </p>
+      {/* ---------- View tabs + toolbar ---------- */}
+      <section className="card overflow-hidden">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-200/80 px-4 py-3">
+          <div className="flex items-center gap-0.5 bg-slate-100 p-1 rounded-xl">
+            {VIEWS.map(({ key, label, Icon }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setView(key)}
+                className={cn(
+                  'inline-flex items-center gap-1.5 px-3 py-1.5 text-[12.5px] font-semibold rounded-lg transition-all',
+                  view === key
+                    ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/80'
+                    : 'text-slate-500 hover:text-slate-700',
+                )}
+              >
+                <Icon className="w-[15px] h-[15px]" />
+                <span>{label}</span>
+              </button>
+            ))}
           </div>
           <button
             type="button"
-            onClick={() => refetch()}
-            disabled={isFetching}
-            className="px-4 py-2 text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-60 rounded-lg transition-colors"
+            onClick={() => navigate('/applies/new')}
+            className="btn-primary"
           >
-            다시 시도
+            <IconPlus className="w-4 h-4" />새 지원 등록
           </button>
         </div>
-      )}
 
-      {data && data.length === 0 && (
-        <div className="rounded-xl bg-white border border-slate-200 p-10 text-center">
-          <p className="text-sm text-slate-600 mb-4">{emptyMessage}</p>
-          {!hasFilter && (
-            <button
-              type="button"
-              onClick={() => navigate('/applies/new')}
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
-            >
-              + 새 지원 등록
-            </button>
+        <div className="flex items-center gap-3 px-4 py-3 bg-slate-50/60 border-b border-slate-200/80 flex-wrap">
+          <div className="relative flex-1 min-w-[220px]">
+            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="회사, 포지션, 태그 검색"
+              className="w-full pl-9 pr-3 py-2 text-[13px] bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+            />
+          </div>
+
+          <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg p-0.5">
+            {STAGE_FILTERS.map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setStage(f.key)}
+                className={cn(
+                  'px-3 py-1.5 text-[12px] font-semibold rounded-md transition-colors',
+                  stage === f.key
+                    ? 'bg-indigo-50 text-indigo-700'
+                    : 'text-slate-500 hover:text-slate-700',
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          <select
+            value={employment}
+            onChange={(e) => setEmployment(e.target.value as EmploymentType | '')}
+            className="px-3 py-2 text-[13px] bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+          >
+            <option value="">전체 고용형태</option>
+            <option value="NEW">신입</option>
+            <option value="EXPERIENCED">경력</option>
+            <option value="INTERN">인턴</option>
+            <option value="CONTRACT">계약직</option>
+          </select>
+
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-[12.5px] font-medium text-slate-600 hover:bg-white rounded-lg transition-colors"
+          >
+            <IconFilter className="w-4 h-4" />
+            고급 필터
+          </button>
+
+          <div className="ml-auto text-[12px] text-slate-500">
+            <span className="font-semibold text-slate-700">{filtered.length}</span>
+            건 표시
+          </div>
+        </div>
+
+        {/* ---------- View body ---------- */}
+        <div className="bg-white">
+          {view === 'table' && (
+            <TableView
+              items={filtered}
+              onOpen={(id) => navigate(`/applies/${id}`)}
+            />
+          )}
+          {view === 'board' && (
+            <BoardView
+              items={filtered}
+              onOpen={(id) => navigate(`/applies/${id}`)}
+            />
+          )}
+          {view === 'calendar' && (
+            <CalendarView
+              items={filtered}
+              onOpen={(id) => navigate(`/applies/${id}`)}
+            />
+          )}
+          {view === 'timeline' && (
+            <TimelineView
+              items={filtered}
+              onOpen={(id) => navigate(`/applies/${id}`)}
+            />
+          )}
+
+          {filtered.length === 0 && (
+            <div className="py-20 text-center">
+              <div className="text-[14px] font-semibold text-slate-700">
+                조건에 맞는 지원이 없어요
+              </div>
+              <div className="text-[12px] text-slate-500 mt-1">
+                필터를 조정하거나 새 지원을 추가해보세요.
+              </div>
+            </div>
           )}
         </div>
-      )}
-
-      {data && data.length > 0 && <JobApplyTable items={data} />}
+      </section>
     </div>
   );
 }
+
+/* ---------- Stat mini card ---------- */
+
+function StatMini({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string | number;
+  color: 'indigo' | 'violet' | 'emerald' | 'rose' | 'amber';
+}) {
+  const bar: Record<typeof color, string> = {
+    indigo: 'bg-indigo-500',
+    violet: 'bg-violet-500',
+    emerald: 'bg-emerald-500',
+    rose: 'bg-rose-500',
+    amber: 'bg-amber-500',
+  };
+  return (
+    <div className="card p-4 flex items-center gap-3">
+      <div className={cn('w-1 h-10 rounded-full', bar[color])} />
+      <div>
+        <div className="text-[10.5px] font-semibold uppercase tracking-wider text-slate-500">
+          {label}
+        </div>
+        <div className="text-[22px] font-extrabold tracking-tight text-slate-900 leading-tight">
+          {value}
+        </div>
+      </div>
+    </div>
+  );
+}
+
