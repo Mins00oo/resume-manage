@@ -1,0 +1,14 @@
+package com.resumemanage.notification.repository;
+
+import com.resumemanage.notification.domain.PushSubscription;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface PushSubscriptionRepository extends JpaRepository<PushSubscription, Long> {
+
+    List<PushSubscription> findAllByUserIdAndNotificationsEnabledTrue(Long userId);
+
+    Optional<PushSubscription> findByEndpoint(String endpoint);
+}
