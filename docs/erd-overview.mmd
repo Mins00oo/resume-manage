@@ -1,0 +1,18 @@
+erDiagram
+    users ||--o{ resumes : owns
+    users ||--o{ job_applies : applies
+    users ||--o{ uploaded_files : uploads
+    users ||--o{ push_subscriptions : subscribes
+
+    resumes ||--|| resume_basic_info : "1:1"
+    resumes ||--o{ resume_educations : "1:N"
+    resumes ||--o{ resume_careers : "1:N"
+    resumes ||--o{ resume_languages : "1:N"
+    resumes ||--o{ resume_certificates : "1:N"
+    resumes ||--o{ resume_awards : "1:N"
+    resumes ||--o{ resume_trainings : "1:N"
+    resumes ||--|| resume_cover_letter : "1:1"
+
+    resume_careers ||--o{ resume_career_projects : "1:N"
+    resume_cover_letter ||--o{ resume_cover_letter_sections : "1:N"
+    resume_basic_info }o--|| uploaded_files : "profile photo"

@@ -1,0 +1,196 @@
+erDiagram
+    users {
+        BIGINT id PK
+        VARCHAR google_sub UK
+        VARCHAR email UK
+        VARCHAR name
+        VARCHAR profile_image_url
+        DATETIME last_login_at
+        DATETIME created_at
+        DATETIME updated_at
+        DATETIME deleted_at
+    }
+
+    resumes {
+        BIGINT id PK
+        BIGINT user_id FK
+        VARCHAR title
+        TINYINT is_master
+        SMALLINT completion_rate
+        JSON hidden_sections
+        DATETIME created_at
+        DATETIME updated_at
+        DATETIME deleted_at
+    }
+
+    resume_basic_info {
+        BIGINT resume_id PK
+        VARCHAR name_ko
+        VARCHAR name_en
+        VARCHAR gender
+        DATE birth_date
+        VARCHAR email
+        VARCHAR phone
+        VARCHAR address
+        BIGINT profile_image_file_id FK
+        VARCHAR short_intro
+        VARCHAR military_status
+        TINYINT disability_status
+        TINYINT veteran_status
+    }
+
+    resume_educations {
+        BIGINT id PK
+        BIGINT resume_id FK
+        VARCHAR school_name
+        VARCHAR major
+        VARCHAR degree
+        DATE start_date
+        DATE end_date
+        VARCHAR graduation_status
+        DECIMAL gpa
+        DECIMAL gpa_max
+        SMALLINT order_index
+    }
+
+    resume_careers {
+        BIGINT id PK
+        BIGINT resume_id FK
+        VARCHAR company_name
+        VARCHAR position
+        VARCHAR department
+        DATE start_date
+        DATE end_date
+        TINYINT is_current
+        TEXT responsibilities
+        SMALLINT order_index
+    }
+
+    resume_career_projects {
+        BIGINT id PK
+        BIGINT career_id FK
+        VARCHAR title
+        DATE start_date
+        DATE end_date
+        TEXT description
+        SMALLINT order_index
+    }
+
+    resume_languages {
+        BIGINT id PK
+        BIGINT resume_id FK
+        VARCHAR language
+        VARCHAR test_name
+        VARCHAR score
+        DATE acquired_at
+        SMALLINT order_index
+    }
+
+    resume_certificates {
+        BIGINT id PK
+        BIGINT resume_id FK
+        VARCHAR name
+        VARCHAR issuer
+        DATE acquired_at
+        SMALLINT order_index
+    }
+
+    resume_awards {
+        BIGINT id PK
+        BIGINT resume_id FK
+        VARCHAR title
+        VARCHAR issuer
+        DATE awarded_at
+        TEXT description
+        SMALLINT order_index
+    }
+
+    resume_trainings {
+        BIGINT id PK
+        BIGINT resume_id FK
+        VARCHAR name
+        VARCHAR institution
+        DATE start_date
+        DATE end_date
+        TEXT description
+        SMALLINT order_index
+    }
+
+    resume_cover_letter {
+        BIGINT resume_id PK
+        VARCHAR type
+        TEXT free_text
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    resume_cover_letter_sections {
+        BIGINT id PK
+        BIGINT resume_id FK
+        VARCHAR question
+        TEXT answer
+        INT char_limit
+        SMALLINT order_index
+    }
+
+    job_applies {
+        BIGINT id PK
+        BIGINT user_id FK
+        VARCHAR company
+        VARCHAR position
+        VARCHAR job_posting_url
+        VARCHAR employment_type
+        VARCHAR channel
+        DATE deadline
+        DATE submitted_at
+        VARCHAR current_status
+        TINYINT went_through_document
+        TINYINT went_through_coding
+        TINYINT went_through_assignment
+        TINYINT went_through_interview
+        TEXT memo
+        DATETIME created_at
+        DATETIME updated_at
+        DATETIME deleted_at
+    }
+
+    uploaded_files {
+        BIGINT id PK
+        BIGINT user_id FK
+        VARCHAR original_filename
+        VARCHAR stored_filename
+        VARCHAR file_path
+        VARCHAR mime_type
+        BIGINT size_bytes
+        DATETIME created_at
+        DATETIME deleted_at
+    }
+
+    push_subscriptions {
+        BIGINT id PK
+        BIGINT user_id FK
+        VARCHAR endpoint UK
+        VARCHAR p256dh_key
+        VARCHAR auth_key
+        VARCHAR user_agent
+        TINYINT notifications_enabled
+        DATETIME created_at
+    }
+
+    users ||--o{ resumes : owns
+    users ||--o{ job_applies : applies
+    users ||--o{ uploaded_files : uploads
+    users ||--o{ push_subscriptions : subscribes
+
+    resumes ||--|| resume_basic_info : has
+    resumes ||--o{ resume_educations : has
+    resumes ||--o{ resume_careers : has
+    resumes ||--o{ resume_languages : has
+    resumes ||--o{ resume_certificates : has
+    resumes ||--o{ resume_awards : has
+    resumes ||--o{ resume_trainings : has
+    resumes ||--|| resume_cover_letter : has
+
+    resume_careers ||--o{ resume_career_projects : has
+    resume_cover_letter ||--o{ resume_cover_letter_sections : has
+    resume_basic_info }o--|| uploaded_files : "profile photo"
