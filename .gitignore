@@ -1,0 +1,46 @@
+# ===== Java / Spring Boot =====
+backend/.gradle/
+backend/build/
+backend/out/
+backend/bin/
+backend/!**/src/main/**/build/
+backend/!**/src/test/**/build/
+backend/*.log
+
+# ===== Node / Vite =====
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.vite/
+frontend/*.log
+frontend/.DS_Store
+
+# ===== IDE =====
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Environment / Secrets =====
+.env
+.env.local
+.env.*.local
+backend/src/main/resources/application-local.yml
+backend/src/main/resources/application-prod.yml
+
+# ===== Uploads / runtime data =====
+uploads/
+backend/uploads/
+
+# ===== Misc =====
+*.swp
+*.bak

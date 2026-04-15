@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: resume-manage
+  profiles:
+    active: local
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 100
+    open-in-view: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+app:
+  upload:
+    root-path: ${APP_UPLOAD_ROOT_PATH:./uploads}
+  security:
+    jwt:
+      secret: ${APP_JWT_SECRET:change-me-in-local-yml-this-is-only-a-placeholder-and-must-be-32-chars-or-more}
+      expiration-seconds: 86400
+    oauth2:
+      frontend-redirect-url: ${APP_FRONTEND_REDIRECT_URL:http://localhost:5173/oauth-callback}
+  cors:
+    allowed-origins:
+      - http://localhost:5173
+      - http://localhost:8080
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
