@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${title}">Resume</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            color: #1f2937;
+            font-family: "Malgun Gothic", "\B9D1\C740 \ACE0\B515", "AppleGothic", "Apple SD Gothic Neo", sans-serif;
+            font-size: 11pt;
+            line-height: 1.55;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        .page-header {
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid #111827;
+        }
+
+        .page-header h1 {
+            margin: 0 0 4px 0;
+            font-size: 22pt;
+            color: #111827;
+        }
+
+        .page-header .meta {
+            font-size: 9pt;
+            color: #6b7280;
+        }
+
+        .card {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            background-color: #fafafa;
+            padding: 20px 22px;
+            margin-bottom: 16px;
+            page-break-inside: avoid;
+        }
+
+        .card h2 {
+            margin: 0 0 14px 0;
+            padding: 0 0 10px 0;
+            font-size: 14pt;
+            color: #111827;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .kv-row {
+            margin-bottom: 6px;
+        }
+
+        .kv-row .k {
+            display: inline-block;
+            width: 110px;
+            color: #6b7280;
+            font-weight: normal;
+        }
+
+        .kv-row .v {
+            color: #111827;
+        }
+
+        .item {
+            padding: 10px 0;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .item .title {
+            font-weight: bold;
+            font-size: 12pt;
+            color: #111827;
+        }
+
+        .item .sub {
+            color: #6b7280;
+            font-size: 10pt;
+        }
+
+        .item .date {
+            color: #6b7280;
+            font-size: 10pt;
+        }
+
+        .item .desc {
+            margin-top: 6px;
+            white-space: pre-wrap;
+            color: #374151;
+        }
+
+        .project {
+            margin-top: 10px;
+            padding: 10px 12px;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+
+        .project .ptitle {
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .cl-free {
+            white-space: pre-wrap;
+            color: #374151;
+        }
+
+        .cl-qa {
+            padding: 10px 0;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+
+        .cl-qa:last-child {
+            border-bottom: none;
+        }
+
+        .cl-qa .q {
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 6px;
+        }
+
+        .cl-qa .a {
+            white-space: pre-wrap;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="page-header">
+        <h1 th:text="${title}">이력서 제목</h1>
+        <div class="meta">
+            <span th:if="${updatedAt}" th:text="'최종 수정: ' + ${#temporals.format(updatedAt, 'yyyy-MM-dd')}">최종 수정: 2026-01-01</span>
+        </div>
+    </div>
+
+    <!-- Basic Info -->
+    <div class="card" th:if="${basicInfo != null}">
+        <h2>기본 정보</h2>
+        <div class="kv-row" th:if="${basicInfo.nameKo != null}">
+            <span class="k">이름</span>
+            <span class="v">
+                <span th:text="${basicInfo.nameKo}">홍길동</span>
+                <span th:if="${basicInfo.nameEn}" th:text="' (' + ${basicInfo.nameEn} + ')'">(Gildong Hong)</span>
+            </span>
+        </div>
+        <div class="kv-row" th:if="${basicInfo.email != null}">
+            <span class="k">이메일</span>
+            <span class="v" th:text="${basicInfo.email}">user@example.com</span>
+        </div>
+        <div class="kv-row" th:if="${basicInfo.phone != null}">
+            <span class="k">연락처</span>
+            <span class="v" th:text="${basicInfo.phone}">010-0000-0000</span>
+        </div>
+        <div class="kv-row" th:if="${basicInfo.address != null}">
+            <span class="k">주소</span>
+            <span class="v" th:text="${basicInfo.address}">서울시</span>
+        </div>
+        <div class="kv-row" th:if="${basicInfo.birthDate != null}">
+            <span class="k">생년월일</span>
+            <span class="v" th:text="${#temporals.format(basicInfo.birthDate, 'yyyy-MM-dd')}">1990-01-01</span>
+        </div>
+        <div class="kv-row" th:if="${basicInfo.gender != null}">
+            <span class="k">성별</span>
+            <span class="v" th:text="${basicInfo.gender}">MALE</span>
+        </div>
+        <div class="kv-row" th:if="${basicInfo.militaryStatus != null}">
+            <span class="k">병역</span>
+            <span class="v" th:text="${basicInfo.militaryStatus}">-</span>
+        </div>
+        <div class="kv-row" th:if="${basicInfo.shortIntro != null}">
+            <span class="k">한줄 소개</span>
+            <span class="v" th:text="${basicInfo.shortIntro}">-</span>
+        </div>
+    </div>
+
+    <!-- Educations -->
+    <div class="card" th:if="${!hiddenSections.contains('EDUCATIONS') and educations != null and !educations.isEmpty()}">
+        <h2>학력</h2>
+        <div class="item" th:each="edu : ${educations}">
+            <div class="title" th:text="${edu.schoolName}">학교명</div>
+            <div class="sub">
+                <span th:if="${edu.major}" th:text="${edu.major}">전공</span>
+                <span th:if="${edu.degree}" th:text="' · ' + ${edu.degree}">학위</span>
+                <span th:if="${edu.graduationStatus}" th:text="' · ' + ${edu.graduationStatus}">상태</span>
+            </div>
+            <div class="date">
+                <span th:if="${edu.startDate}" th:text="${#temporals.format(edu.startDate, 'yyyy-MM')}">2016-03</span>
+                <span th:if="${edu.endDate}" th:text="' ~ ' + ${#temporals.format(edu.endDate, 'yyyy-MM')}">2020-02</span>
+            </div>
+            <div class="sub" th:if="${edu.gpa != null}">
+                <span>학점 </span>
+                <span th:text="${edu.gpa}">3.5</span>
+                <span th:if="${edu.gpaMax != null}" th:text="' / ' + ${edu.gpaMax}">/ 4.5</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Careers -->
+    <div class="card" th:if="${!hiddenSections.contains('CAREERS') and careers != null and !careers.isEmpty()}">
+        <h2>경력</h2>
+        <div class="item" th:each="cwp : ${careers}">
+            <div class="title" th:text="${cwp.career.companyName}">회사명</div>
+            <div class="sub">
+                <span th:if="${cwp.career.position}" th:text="${cwp.career.position}">직무</span>
+                <span th:if="${cwp.career.department}" th:text="' · ' + ${cwp.career.department}">부서</span>
+            </div>
+            <div class="date">
+                <span th:if="${cwp.career.startDate}" th:text="${#temporals.format(cwp.career.startDate, 'yyyy-MM')}">2020-03</span>
+                <span th:if="${cwp.career.isCurrent()}"> ~ 재직 중</span>
+                <span th:if="${!cwp.career.isCurrent() and cwp.career.endDate != null}" th:text="' ~ ' + ${#temporals.format(cwp.career.endDate, 'yyyy-MM')}">~ 2023-12</span>
+            </div>
+            <div class="desc" th:if="${cwp.career.responsibilities != null}" th:text="${cwp.career.responsibilities}">주요 업무</div>
+
+            <div class="project" th:each="p : ${cwp.projects}">
+                <div class="ptitle" th:text="${p.title}">프로젝트 제목</div>
+                <div class="date">
+                    <span th:if="${p.startDate}" th:text="${#temporals.format(p.startDate, 'yyyy-MM')}">2021-01</span>
+                    <span th:if="${p.endDate}" th:text="' ~ ' + ${#temporals.format(p.endDate, 'yyyy-MM')}">~ 2021-06</span>
+                </div>
+                <div class="desc" th:if="${p.description != null}" th:text="${p.description}">설명</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Languages -->
+    <div class="card" th:if="${!hiddenSections.contains('LANGUAGES') and languages != null and !languages.isEmpty()}">
+        <h2>어학</h2>
+        <div class="item" th:each="lang : ${languages}">
+            <div class="title" th:text="${lang.language}">언어</div>
+            <div class="sub">
+                <span th:if="${lang.testName}" th:text="${lang.testName}">시험</span>
+                <span th:if="${lang.score}" th:text="' · ' + ${lang.score}">점수</span>
+            </div>
+            <div class="date" th:if="${lang.acquiredAt}" th:text="${#temporals.format(lang.acquiredAt, 'yyyy-MM-dd')}">취득일</div>
+        </div>
+    </div>
+
+    <!-- Certificates -->
+    <div class="card" th:if="${!hiddenSections.contains('CERTIFICATES') and certificates != null and !certificates.isEmpty()}">
+        <h2>자격증</h2>
+        <div class="item" th:each="cert : ${certificates}">
+            <div class="title" th:text="${cert.name}">자격증명</div>
+            <div class="sub" th:if="${cert.issuer}" th:text="${cert.issuer}">발급기관</div>
+            <div class="date" th:if="${cert.acquiredAt}" th:text="${#temporals.format(cert.acquiredAt, 'yyyy-MM-dd')}">취득일</div>
+        </div>
+    </div>
+
+    <!-- Awards -->
+    <div class="card" th:if="${!hiddenSections.contains('AWARDS') and awards != null and !awards.isEmpty()}">
+        <h2>수상</h2>
+        <div class="item" th:each="aw : ${awards}">
+            <div class="title" th:text="${aw.title}">수상명</div>
+            <div class="sub" th:if="${aw.issuer}" th:text="${aw.issuer}">주최</div>
+            <div class="date" th:if="${aw.awardedAt}" th:text="${#temporals.format(aw.awardedAt, 'yyyy-MM-dd')}">수상일</div>
+            <div class="desc" th:if="${aw.description != null}" th:text="${aw.description}">설명</div>
+        </div>
+    </div>
+
+    <!-- Trainings -->
+    <div class="card" th:if="${!hiddenSections.contains('TRAININGS') and trainings != null and !trainings.isEmpty()}">
+        <h2>교육</h2>
+        <div class="item" th:each="tr : ${trainings}">
+            <div class="title" th:text="${tr.name}">교육명</div>
+            <div class="sub" th:if="${tr.institution}" th:text="${tr.institution}">기관</div>
+            <div class="date">
+                <span th:if="${tr.startDate}" th:text="${#temporals.format(tr.startDate, 'yyyy-MM')}">2023-01</span>
+                <span th:if="${tr.endDate}" th:text="' ~ ' + ${#temporals.format(tr.endDate, 'yyyy-MM')}">~ 2023-03</span>
+            </div>
+            <div class="desc" th:if="${tr.description != null}" th:text="${tr.description}">설명</div>
+        </div>
+    </div>
+
+    <!-- Cover Letter -->
+    <div class="card" th:if="${!hiddenSections.contains('COVER_LETTER') and coverLetter != null}">
+        <h2>자기소개서</h2>
+        <div th:if="${coverLetter.type.name() == 'FREE'}">
+            <div class="cl-free" th:if="${coverLetter.freeText != null}" th:text="${coverLetter.freeText}">자유 텍스트</div>
+        </div>
+        <div th:if="${coverLetter.type.name() == 'STRUCTURED'}">
+            <div class="cl-qa" th:each="sec : ${coverLetterSections}">
+                <div class="q" th:text="${sec.question}">질문</div>
+                <div class="a" th:if="${sec.answer != null}" th:text="${sec.answer}">답변</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
