@@ -235,7 +235,7 @@ export default function ResumeEditorPage() {
     <>
       <div className="flex h-[calc(100vh-56px)] md:h-[calc(100vh-64px)]">
         {/* ─── Left: scrollable form ─── */}
-        <div className="flex-1 overflow-y-auto pb-[140px] lg:pb-8">
+        <div className="flex-1 overflow-y-auto pb-[200px] lg:pb-8">
           <div className="max-w-2xl mx-auto px-4 md:px-8 py-6">
 
             {/* Title */}
@@ -319,9 +319,9 @@ export default function ResumeEditorPage() {
                   <FormField label="직책"><input type="text" value={exp.role} onChange={(e) => updateExperience(i, 'role', e.target.value)} placeholder="프론트엔드 엔지니어" className="input-base w-full" /></FormField>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <FormField label="시작일"><input type="month" value={exp.startDate} onChange={(e) => updateExperience(i, 'startDate', e.target.value)} className="input-base w-full" /></FormField>
+                  <FormField label="시작일"><input type="text" placeholder="2024.03" value={exp.startDate} onChange={(e) => updateExperience(i, 'startDate', e.target.value)} className="input-base w-full" /></FormField>
                   {exp.endDate !== null && (
-                    <FormField label="종료일"><input type="month" value={exp.endDate ?? ''} onChange={(e) => updateExperience(i, 'endDate', e.target.value)} className="input-base w-full" /></FormField>
+                    <FormField label="종료일"><input type="text" placeholder="2024.03" value={exp.endDate ?? ''} onChange={(e) => updateExperience(i, 'endDate', e.target.value)} className="input-base w-full" /></FormField>
                   )}
                 </div>
                 <label className="flex items-center gap-2 mt-1 text-[12px] text-[var(--color-text-secondary)] cursor-pointer">
@@ -364,8 +364,8 @@ export default function ResumeEditorPage() {
                 <FormField label="학교"><input type="text" value={edu.school} onChange={(e) => updateEducation(i, 'school', e.target.value)} placeholder="서울대학교" className="input-base w-full" /></FormField>
                 <FormField label="전공 · 학위"><input type="text" value={edu.degree} onChange={(e) => updateEducation(i, 'degree', e.target.value)} placeholder="컴퓨터공학 · 학사" className="input-base w-full" /></FormField>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <FormField label="시작일"><input type="month" value={edu.startDate} onChange={(e) => updateEducation(i, 'startDate', e.target.value)} className="input-base w-full" /></FormField>
-                  <FormField label="종료일"><input type="month" value={edu.endDate} onChange={(e) => updateEducation(i, 'endDate', e.target.value)} className="input-base w-full" /></FormField>
+                  <FormField label="시작일"><input type="text" placeholder="2024.03" value={edu.startDate} onChange={(e) => updateEducation(i, 'startDate', e.target.value)} className="input-base w-full" /></FormField>
+                  <FormField label="종료일"><input type="text" placeholder="2024.03" value={edu.endDate} onChange={(e) => updateEducation(i, 'endDate', e.target.value)} className="input-base w-full" /></FormField>
                 </div>
               </ItemCard>
             ))}
