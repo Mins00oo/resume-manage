@@ -255,10 +255,12 @@ export default function ResumeEditorPage() {
 
   return (
     <>
-      <div className="flex h-[calc(100vh-56px)] md:h-[calc(100vh-64px)]">
-        {/* ─── Left: scrollable form ─── */}
-        <div className="flex-1 overflow-y-auto pb-[200px] lg:pb-8">
-          <div className="max-w-2xl mx-auto px-4 md:px-8 py-6">
+      <div className="flex h-[calc(100dvh-56px)] md:h-[calc(100dvh-64px)]">
+        {/* ─── Left: form + bottom bar column ─── */}
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* Scrollable form */}
+          <div className="flex-1 overflow-y-auto min-h-0 lg:pb-8">
+            <div className="max-w-2xl mx-auto px-4 md:px-8 py-6 pb-8">
 
             {/* Title */}
             <div className="mb-2">
@@ -438,6 +440,27 @@ export default function ResumeEditorPage() {
             ))}
 
           </div>
+          </div>
+
+          {/* ─── Bottom bar (mobile) — in layout flow, not fixed ─── */}
+          <div
+            className="shrink-0 lg:hidden"
+            style={{ marginBottom: 'calc(60px + env(safe-area-inset-bottom, 0px))' }}
+          >
+            <ResumeBottomBar
+              completion={completion}
+              onSave={() => {
+                if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+                saveBasicInfoMutation.mutate();
+              }}
+              saving={saveBasicInfoMutation.isPending}
+              saved={saveStatus === 'saved'}
+              onSettings={() => setMobilePreviewOpen(true)}
+              onMore={() => {
+                if (confirm('PDF를 다운로드할까요?')) downloadPdfMutation.mutate();
+              }}
+            />
+          </div>
         </div>
 
         {/* ─── Right: preview (desktop) ─── */}
@@ -459,23 +482,6 @@ export default function ResumeEditorPage() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* ─── Bottom bar (mobile) ─── */}
-      <div className="lg:hidden">
-        <ResumeBottomBar
-          completion={completion}
-          onSave={() => {
-            if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-            saveBasicInfoMutation.mutate();
-          }}
-          saving={saveBasicInfoMutation.isPending}
-          saved={saveStatus === 'saved'}
-          onSettings={() => setMobilePreviewOpen(true)}
-          onMore={() => {
-            if (confirm('PDF를 다운로드할까요?')) downloadPdfMutation.mutate();
-          }}
-        />
       </div>
 
       {/* ─── Mobile preview modal ─── */}

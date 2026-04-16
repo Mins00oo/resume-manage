@@ -12,9 +12,8 @@ type Props = {
 export default function ResumeBottomBar({ completion, onSave, onSettings, onMore, saving, saved }: Props) {
   return (
     <div
-      className="fixed left-0 right-0 z-30 border-t"
+      className="border-t"
       style={{
-        bottom: 'calc(60px + env(safe-area-inset-bottom, 0px))',
         background: 'var(--color-bg-surface)',
         borderColor: 'var(--color-border-subtle)',
       }}
