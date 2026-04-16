@@ -3,6 +3,7 @@ package com.resumemanage.jobapply.application;
 import com.resumemanage.common.exception.BusinessException;
 import com.resumemanage.common.exception.ErrorCode;
 import com.resumemanage.common.security.CurrentUser;
+import com.resumemanage.jobapply.domain.EmploymentType;
 import com.resumemanage.jobapply.domain.JobApply;
 import com.resumemanage.jobapply.domain.JobApplyStatus;
 import com.resumemanage.jobapply.dto.JobApplyCreateRequest;
@@ -10,9 +11,13 @@ import com.resumemanage.jobapply.dto.JobApplyDetailResponse;
 import com.resumemanage.jobapply.dto.JobApplyListItemResponse;
 import com.resumemanage.jobapply.dto.JobApplyUpdateRequest;
 import com.resumemanage.jobapply.repository.JobApplyRepository;
+import com.resumemanage.jobapply.repository.JobApplySpecifications;
 import com.resumemanage.user.domain.User;
 import com.resumemanage.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,44 +51,37 @@ public class JobApplyService {
     }
 
     @Transactional(readOnly = true)
-    public List<JobApplyListItemResponse> list(
+    public Page<JobApplyListItemResponse> list(
             Long userId,
-            JobApplyStatus statusFilter,
+            JobApplyStatus status,
+            EmploymentType employmentType,
+            Integer year,
             LocalDate from,
             LocalDate to,
-            String search
+            String search,
+            Pageable pageable
     ) {
-        List<JobApply> all = jobApplyRepository.findAllByUserIdAndDeletedAtIsNullOrderByUpdatedAtDesc(userId);
+        Specification<JobApply> spec = Specification
+                .where(JobApplySpecifications.belongsToUser(userId))
+                .and(JobApplySpecifications.notDeleted());
 
-        String searchLower = (search == null || search.isBlank()) ? null : search.toLowerCase();
+        if (status != null) {
+            spec = spec.and(JobApplySpecifications.hasStatus(status));
+        }
+        if (employmentType != null) {
+            spec = spec.and(JobApplySpecifications.hasEmploymentType(employmentType));
+        }
+        if (year != null) {
+            spec = spec.and(JobApplySpecifications.submittedInYear(year));
+        }
+        if (from != null || to != null) {
+            spec = spec.and(JobApplySpecifications.deadlineBetween(from, to));
+        }
+        if (search != null && !search.isBlank()) {
+            spec = spec.and(JobApplySpecifications.companyOrPositionContains(search));
+        }
 
-        return all.stream()
-                .filter(ja -> statusFilter == null || ja.getCurrentStatus() == statusFilter)
-                .filter(ja -> {
-                    if (from == null && to == null) {
-                        return true;
-                    }
-                    LocalDate d = ja.getDeadline();
-                    if (d == null) {
-                        return false;
-                    }
-                    if (from != null && d.isBefore(from)) {
-                        return false;
-                    }
-                    if (to != null && d.isAfter(to)) {
-                        return false;
-                    }
-                    return true;
-                })
-                .filter(ja -> {
-                    if (searchLower == null) {
-                        return true;
-                    }
-                    String company = ja.getCompany();
-                    return company != null && company.toLowerCase().contains(searchLower);
-                })
-                .map(JobApplyListItemResponse::from)
-                .toList();
+        return jobApplyRepository.findAll(spec, pageable).map(JobApplyListItemResponse::from);
     }
 
     @Transactional(readOnly = true)

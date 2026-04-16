@@ -3,6 +3,7 @@ package com.resumemanage.jobapply.presentation;
 import com.resumemanage.common.dto.ApiResponse;
 import com.resumemanage.common.security.CurrentUser;
 import com.resumemanage.jobapply.application.JobApplyService;
+import com.resumemanage.jobapply.domain.EmploymentType;
 import com.resumemanage.jobapply.domain.JobApplyStatus;
 import com.resumemanage.jobapply.dto.JobApplyCreateRequest;
 import com.resumemanage.jobapply.dto.JobApplyDetailResponse;
@@ -11,6 +12,9 @@ import com.resumemanage.jobapply.dto.JobApplyTransitionRequest;
 import com.resumemanage.jobapply.dto.JobApplyUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -35,15 +38,23 @@ public class JobApplyController {
     private final JobApplyService jobApplyService;
 
     @GetMapping
-    public ApiResponse<List<JobApplyListItemResponse>> list(
+    public ApiResponse<Page<JobApplyListItemResponse>> list(
             @AuthenticationPrincipal CurrentUser currentUser,
             @RequestParam(required = false) JobApplyStatus status,
+            @RequestParam(required = false) EmploymentType employmentType,
+            @RequestParam(required = false) Integer year,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
     ) {
         return ApiResponse.ok(
-                jobApplyService.list(currentUser.userId(), status, from, to, search)
+                jobApplyService.list(
+                        currentUser.userId(), status, employmentType, year,
+                        from, to, search,
+                        PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"))
+                )
         );
     }
 
