@@ -153,6 +153,16 @@ export default function ResumeEditorPage() {
     onError: (err) => { setSaveStatus('idle'); alert(getErrorMessage(err)); },
   });
 
+  /* Reset save status when doc changes */
+  const prevDocForStatus = useRef(doc);
+  useEffect(() => {
+    if (!initialized.current) return;
+    if (prevDocForStatus.current !== doc && saveStatus === 'saved') {
+      setSaveStatus('idle');
+    }
+    prevDocForStatus.current = doc;
+  }, [doc, saveStatus]);
+
   /* Auto-save debounce */
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevDocRef = useRef(doc);
@@ -332,9 +342,9 @@ export default function ResumeEditorPage() {
                   <FormField label="직책"><input type="text" value={exp.role} onChange={(e) => updateExperience(i, 'role', e.target.value)} placeholder="프론트엔드 엔지니어" className="input-base w-full" /></FormField>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <FormField label="시작일"><input type="text" placeholder="2024.03" value={exp.startDate} onChange={(e) => updateExperience(i, 'startDate', e.target.value)} className="input-base w-full" /></FormField>
+                  <FormField label="시작일"><input type="date" value={exp.startDate} onChange={(e) => updateExperience(i, 'startDate', e.target.value)} className="input-base w-full" /></FormField>
                   {exp.endDate !== null && (
-                    <FormField label="종료일"><input type="text" placeholder="2024.03" value={exp.endDate ?? ''} onChange={(e) => updateExperience(i, 'endDate', e.target.value)} className="input-base w-full" /></FormField>
+                    <FormField label="종료일"><input type="date" value={exp.endDate ?? ''} onChange={(e) => updateExperience(i, 'endDate', e.target.value)} className="input-base w-full" /></FormField>
                   )}
                 </div>
                 <label className="flex items-center gap-2 mt-1 text-[12px] text-[var(--color-text-secondary)] cursor-pointer">
@@ -377,8 +387,8 @@ export default function ResumeEditorPage() {
                 <FormField label="학교"><input type="text" value={edu.school} onChange={(e) => updateEducation(i, 'school', e.target.value)} placeholder="서울대학교" className="input-base w-full" /></FormField>
                 <FormField label="전공 · 학위"><input type="text" value={edu.degree} onChange={(e) => updateEducation(i, 'degree', e.target.value)} placeholder="컴퓨터공학 · 학사" className="input-base w-full" /></FormField>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <FormField label="시작일"><input type="text" placeholder="2024.03" value={edu.startDate} onChange={(e) => updateEducation(i, 'startDate', e.target.value)} className="input-base w-full" /></FormField>
-                  <FormField label="종료일"><input type="text" placeholder="2024.03" value={edu.endDate} onChange={(e) => updateEducation(i, 'endDate', e.target.value)} className="input-base w-full" /></FormField>
+                  <FormField label="시작일"><input type="date" value={edu.startDate} onChange={(e) => updateEducation(i, 'startDate', e.target.value)} className="input-base w-full" /></FormField>
+                  <FormField label="종료일"><input type="date" value={edu.endDate} onChange={(e) => updateEducation(i, 'endDate', e.target.value)} className="input-base w-full" /></FormField>
                 </div>
               </ItemCard>
             ))}
@@ -511,7 +521,7 @@ function FormField({ label, required, hint, children }: { label: string; require
 
 function ItemCard({ onRemove, children }: { onRemove: () => void; children: React.ReactNode }) {
   return (
-    <div className="card p-4 mb-3 relative group">
+    <div className="card p-4 mb-3 relative group overflow-hidden">
       <button type="button" onClick={onRemove} className="absolute top-3 right-3 w-7 h-7 rounded-lg text-[var(--color-text-tertiary)] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity">
         <IconTrash className="w-3.5 h-3.5" />
       </button>
