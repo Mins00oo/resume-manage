@@ -130,11 +130,19 @@ export default function ResumeEditorPage() {
             </div>
           </div>
 
-          <button type="button" className="btn-outline text-[12px] py-1.5 px-3">
+          <button
+            type="button"
+            onClick={() => alert('AI 리뷰 기능은 준비 중이에요.')}
+            className="btn-outline text-[12px] py-1.5 px-3"
+          >
             <IconSparkles className="w-3.5 h-3.5" />
             AI 리뷰
           </button>
-          <button type="button" className="btn-primary text-[12px] py-1.5 px-3">
+          <button
+            type="button"
+            onClick={() => alert('PDF 다운로드는 백엔드 연동 후 사용할 수 있어요.')}
+            className="btn-primary text-[12px] py-1.5 px-3"
+          >
             <IconDownload className="w-3.5 h-3.5" />
             PDF
           </button>

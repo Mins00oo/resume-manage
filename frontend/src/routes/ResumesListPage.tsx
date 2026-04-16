@@ -90,7 +90,10 @@ export default function ResumesListPage() {
               </button>
               <button
                 type="button"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  alert('PDF 내보내기는 백엔드 연동 후 사용할 수 있어요.');
+                }}
                 className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[13px] font-medium text-white/85 bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
               >
                 <IconDownload className="w-3.5 h-3.5" />
