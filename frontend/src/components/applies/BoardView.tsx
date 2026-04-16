@@ -94,21 +94,13 @@ export default function BoardView({ items, onOpen }: Props) {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 flex-wrap mt-2.5">
-                        {item.tags.slice(0, 2).map((tag) => (
-                          <span
-                            key={tag}
-                            className="px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-text-secondary)] bg-[var(--color-bg-muted)] rounded"
-                          >
-                            #{tag}
+                      {item.channel && (
+                        <div className="flex items-center gap-1.5 flex-wrap mt-2.5">
+                          <span className="px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-text-secondary)] bg-[var(--color-bg-muted)] rounded">
+                            {item.channel}
                           </span>
-                        ))}
-                        {item.salary && (
-                          <span className="text-[10px] text-[var(--color-text-tertiary)]">
-                            · {item.salary}
-                          </span>
-                        )}
-                      </div>
+                        </div>
+                      )}
                       {dday && (
                         <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-[var(--color-border-subtle)]">
                           <span className="text-[10px] text-[var(--color-text-tertiary)]">

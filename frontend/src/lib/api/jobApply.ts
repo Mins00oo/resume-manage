@@ -5,20 +5,38 @@ import type {
   JobApplyDetail,
   JobApplyCreateRequest,
   JobApplyStatus,
+  EmploymentType,
+  Page,
 } from '../../types/jobApply';
 
 export type JobApplyListParams = {
+  page?: number;
+  size?: number;
   status?: JobApplyStatus;
+  employmentType?: EmploymentType;
+  year?: number;
   from?: string;
   to?: string;
   search?: string;
 };
 
 export const jobApplyApi = {
-  list: (params: JobApplyListParams = {}): Promise<JobApplyListItem[]> =>
+  list: (params: JobApplyListParams = {}): Promise<Page<JobApplyListItem>> =>
     api
-      .get<ApiResponse<JobApplyListItem[]>>('/api/job-applies', { params })
-      .then((r) => r.data.data ?? []),
+      .get<ApiResponse<Page<JobApplyListItem>>>('/api/job-applies', { params })
+      .then((r) => {
+        if (!r.data.data)
+          return {
+            content: [],
+            totalElements: 0,
+            totalPages: 0,
+            number: 0,
+            size: params.size ?? 25,
+            first: true,
+            last: true,
+          };
+        return r.data.data;
+      }),
   create: (body: JobApplyCreateRequest): Promise<number> =>
     api
       .post<ApiResponse<{ id: number }>>('/api/job-applies', body)

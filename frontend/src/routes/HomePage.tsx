@@ -1,33 +1,67 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { mockDashboard, mockApplies, mockMe } from '../mocks/data';
+import { useQuery } from '@tanstack/react-query';
+import { dashboardApi, type DashboardPeriod } from '../lib/api/dashboard';
+import type { DashboardSummary } from '../types/dashboard';
 import {
   IconArrowUpRight,
   IconCalendar,
-  IconClock,
   IconFire,
   IconPlus,
   IconSparkles,
 } from '../components/icons/Icons';
 import { cn } from '../lib/cn';
-import { statusLabel } from '../lib/statusLabel';
 import { useThemeStore } from '../store/themeStore';
+import { api } from '../lib/api';
+import type { ApiResponse, MeResponse } from '../types/api';
 
 export default function HomePage() {
   const navigate = useNavigate();
   const [period, setPeriod] = useState<'3m' | '6m' | 'all'>('3m');
-  const data = mockDashboard;
 
-  const upcoming = useMemo(
-    () =>
-      mockApplies
-        .filter((a) => a.deadline && new Date(a.deadline) >= new Date('2026-04-15'))
-        .sort((a, b) => (a.deadline! < b.deadline! ? -1 : 1))
-        .slice(0, 5),
-    [],
-  );
+  const { data: me } = useQuery({
+    queryKey: ['me'],
+    queryFn: () =>
+      api
+        .get<ApiResponse<MeResponse>>('/api/me')
+        .then((r) => r.data.data),
+  });
 
+  const {
+    data: dashboard,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['dashboard', period],
+    queryFn: () => dashboardApi.summary(period as DashboardPeriod),
+  });
+
+  const upcoming = dashboard?.upcomingDeadlines ?? [];
   const focus = upcoming[0];
+
+  // Build pipeline from summaryStrip
+  const pipeline = useMemo(() => {
+    if (!dashboard) return [];
+    const s = dashboard.summaryStrip;
+    const total = s.draft + s.submitted + s.inProgress + s.accepted + s.rejected;
+    return [
+      { label: '지원', count: total, color: '#6366F1' },
+      { label: '진행 중', count: s.inProgress, color: '#8B5CF6' },
+      { label: '최종 합격', count: s.accepted, color: '#10B981' },
+      { label: '탈락', count: s.rejected, color: '#EF4444' },
+    ];
+  }, [dashboard]);
+
+  const totalApplies = dashboard
+    ? dashboard.summaryStrip.draft +
+      dashboard.summaryStrip.submitted +
+      dashboard.summaryStrip.inProgress +
+      dashboard.summaryStrip.accepted +
+      dashboard.summaryStrip.rejected
+    : 0;
+
+  const userName = me?.name ?? '';
+  const displayName = userName.length >= 2 ? userName.slice(-2) : userName;
 
   return (
     <div className="space-y-7">
@@ -35,7 +69,7 @@ export default function HomePage() {
       <div className="flex items-end justify-between gap-4">
         <div>
           <div className="text-sm text-[var(--color-text-tertiary)] font-medium">
-            안녕하세요, {mockMe.name.slice(-2) ?? mockMe.name}님 👋
+            {displayName ? `안녕하세요, ${displayName}님` : '안녕하세요'}
           </div>
           <div className="text-[22px] font-bold tracking-tight text-[var(--color-text-primary)] mt-0.5">
             오늘도 커리어 한 걸음 나아가볼까요?
@@ -53,75 +87,90 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ---------- Focus hero ---------- */}
-      <section className="grid grid-cols-12 gap-5">
-        {/* Focus card: takes 7 cols */}
-        <div className="col-span-12 lg:col-span-7">
-          <FocusCard
-            focus={focus}
-            onOpen={() => focus && navigate(`/applies/${focus.id}`)}
-            onAddNew={() => navigate('/applies/new')}
-          />
+      {isLoading ? (
+        <div className="py-20 flex flex-col items-center text-center">
+          <div className="w-8 h-8 border-3 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          <div className="text-[13px] text-[var(--color-text-tertiary)] mt-4">
+            대시보드를 불러오는 중...
+          </div>
         </div>
-        {/* Funnel: takes 5 cols */}
-        <div className="col-span-12 lg:col-span-5">
-          <PipelineFunnel data={data.pipeline} />
+      ) : isError || !dashboard ? (
+        <div className="py-20 flex flex-col items-center text-center">
+          <div className="text-[15px] font-bold text-[var(--color-text-primary)]">
+            대시보드 데이터를 불러오지 못했어요
+          </div>
+          <div className="text-[12.5px] text-[var(--color-text-tertiary)] mt-1.5">
+            잠시 후 다시 시도해주세요.
+          </div>
         </div>
-      </section>
+      ) : (
+        <>
+          {/* ---------- Focus hero ---------- */}
+          <section className="grid grid-cols-12 gap-5">
+            {/* Focus card: takes 7 cols */}
+            <div className="col-span-12 lg:col-span-7">
+              <FocusCard
+                focus={focus}
+                onOpen={() => focus && navigate(`/applies/${focus.id}`)}
+                onAddNew={() => navigate('/applies/new')}
+              />
+            </div>
+            {/* Funnel: takes 5 cols */}
+            <div className="col-span-12 lg:col-span-5">
+              <PipelineFunnel data={pipeline} />
+            </div>
+          </section>
 
-      {/* ---------- KPI row ---------- */}
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KpiCard
-          label="전체 지원"
-          value={data.summaryStrip.total}
-          delta="+3"
-          hint="지난달 대비"
-          accent="indigo"
-        />
-        <KpiCard
-          label="진행 중"
-          value={data.summaryStrip.inProgress}
-          hint="활발한 지원"
-          accent="violet"
-        />
-        <KpiCard
-          label="서류 합격률"
-          value={`${data.passRates.document.rate}%`}
-          delta={`${data.passRates.document.passed}/${data.passRates.document.total}`}
-          accent="sky"
-        />
-        <KpiCard
-          label="최종 합격"
-          value={data.summaryStrip.accepted}
-          hint="이번 사이클"
-          accent="emerald"
-        />
-      </section>
+          {/* ---------- KPI row ---------- */}
+          <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <KpiCard
+              label="전체 지원"
+              value={totalApplies}
+              accent="indigo"
+            />
+            <KpiCard
+              label="진행 중"
+              value={dashboard.summaryStrip.inProgress}
+              hint="활발한 지원"
+              accent="violet"
+            />
+            <KpiCard
+              label="서류 합격률"
+              value={`${dashboard.passRates.document.rate}%`}
+              delta={`${dashboard.passRates.document.passed}/${dashboard.passRates.document.total}`}
+              accent="sky"
+            />
+            <KpiCard
+              label="최종 합격"
+              value={dashboard.summaryStrip.accepted}
+              hint="이번 사이클"
+              accent="emerald"
+            />
+          </section>
 
-      {/* ---------- Middle row: Pass rates + Resume card ---------- */}
-      <section className="grid grid-cols-12 gap-5">
-        <div className="col-span-12 lg:col-span-8">
-          <PassRatesBoard data={data.passRates} />
-        </div>
-        <div className="col-span-12 lg:col-span-4">
-          <MasterResumeCard />
-        </div>
-      </section>
+          {/* ---------- Middle row: Pass rates + Resume card ---------- */}
+          <section className="grid grid-cols-12 gap-5">
+            <div className="col-span-12 lg:col-span-8">
+              <PassRatesBoard data={dashboard.passRates} />
+            </div>
+            <div className="col-span-12 lg:col-span-4">
+              <MasterResumeCard resume={dashboard.masterResume} />
+            </div>
+          </section>
 
-      {/* ---------- Activity heatmap ---------- */}
-      <section>
-        <ActivityHeatmap data={data.activityGrass} />
-      </section>
+          {/* ---------- Activity heatmap ---------- */}
+          <section>
+            <ActivityHeatmap data={dashboard.activityGrass} />
+          </section>
 
-      {/* ---------- Bottom row: Upcoming + Activity ---------- */}
-      <section className="grid grid-cols-12 gap-5">
-        <div className="col-span-12 lg:col-span-6">
-          <UpcomingList items={upcoming} onOpen={(id) => navigate(`/applies/${id}`)} />
-        </div>
-        <div className="col-span-12 lg:col-span-6">
-          <RecentActivityList />
-        </div>
-      </section>
+          {/* ---------- Bottom row: Upcoming ---------- */}
+          <section className="grid grid-cols-12 gap-5">
+            <div className="col-span-12 lg:col-span-6">
+              <UpcomingList items={upcoming} onOpen={(id) => navigate(`/applies/${id}`)} />
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }
@@ -147,23 +196,28 @@ function PeriodPill({ label, active, onClick }: { label: string; active?: boolea
 
 /* ---------- Focus card ---------- */
 
+type UpcomingDeadline = DashboardSummary['upcomingDeadlines'][number];
+
 type FocusCardProps = {
-  focus: (typeof mockApplies)[number] | undefined;
+  focus: UpcomingDeadline | undefined;
   onOpen: () => void;
   onAddNew: () => void;
 };
 
+function companyColor(name: string): string {
+  const PALETTE = [
+    '#3182F6', '#FEE500', '#03C75A', '#00C300', '#FF7E36',
+    '#F7324C', '#4B5AFA', '#0A0A0A', '#2AC1BC', '#35C5F0',
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return PALETTE[Math.abs(hash) % PALETTE.length];
+}
+
 function FocusCard({ focus, onOpen, onAddNew }: FocusCardProps) {
-  const daysLeft = focus?.deadline
-    ? Math.max(
-        0,
-        Math.round(
-          (new Date(focus.deadline).getTime() -
-            new Date('2026-04-15').getTime()) /
-            (24 * 60 * 60 * 1000),
-        ),
-      )
-    : null;
+  const daysLeft = focus ? Math.max(0, focus.dDay) : null;
 
   return (
     <div className="relative h-full rounded-2xl overflow-hidden border border-slate-900/5 dark:border-white/5 shadow-[0_1px_0_rgba(15,23,42,0.03),0_12px_32px_-12px_rgba(79,70,229,0.18)] dark:shadow-[0_1px_0_rgba(255,255,255,0.04),0_20px_40px_-20px_rgba(99,102,241,0.45)]">
@@ -209,7 +263,7 @@ function FocusCard({ focus, onOpen, onAddNew }: FocusCardProps) {
               <div className="mt-2 flex items-center gap-3">
                 <div
                   className="w-11 h-11 rounded-xl flex items-center justify-center text-base font-bold ring-1 ring-white/15"
-                  style={{ backgroundColor: focus.logoColor }}
+                  style={{ backgroundColor: companyColor(focus.company) }}
                 >
                   {focus.company[0]}
                 </div>
@@ -218,18 +272,17 @@ function FocusCard({ focus, onOpen, onAddNew }: FocusCardProps) {
                     {focus.company}
                   </div>
                   <div className="text-[13px] text-white/60 truncate">
-                    {focus.position}
+                    {focus.position ?? '포지션 미정'}
                   </div>
                 </div>
               </div>
 
-              <div className="mt-5 grid grid-cols-3 gap-3">
-                <MiniStat label="상태" value={statusLabel(focus.currentStatus)} />
+              <div className="mt-5 grid grid-cols-2 gap-3">
                 <MiniStat
                   label="마감"
                   value={focus.deadline?.replace(/-/g, '.') ?? '-'}
                 />
-                <MiniStat label="경로" value={focus.channel} />
+                <MiniStat label="D-Day" value={`D-${focus.dDay}`} />
               </div>
             </div>
 
@@ -276,7 +329,7 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 
 /* ---------- Pipeline funnel ---------- */
 
-function PipelineFunnel({ data }: { data: typeof mockDashboard.pipeline }) {
+function PipelineFunnel({ data }: { data: { label: string; count: number; color: string }[] }) {
   const max = Math.max(...data.map((d) => d.count), 1);
   return (
     <div className="card p-5 h-full">
@@ -381,14 +434,12 @@ function KpiCard({
 
 /* ---------- Pass rates board ---------- */
 
-function PassRatesBoard({ data }: { data: typeof mockDashboard.passRates }) {
+function PassRatesBoard({ data }: { data: DashboardSummary['passRates'] }) {
   const stages = [
-    { key: 'document', label: '서류', color: '#6366F1' },
-    { key: 'coding', label: '코딩테스트', color: '#8B5CF6' },
-    { key: 'assignment', label: '과제', color: '#A855F7' },
-    { key: 'interview', label: '면접', color: '#EC4899' },
-    { key: 'final', label: '최종', color: '#10B981' },
-  ] as const;
+    { key: 'document' as const, label: '서류', color: '#6366F1' },
+    { key: 'interview' as const, label: '면접', color: '#EC4899' },
+    { key: 'final' as const, label: '최종', color: '#10B981' },
+  ];
   return (
     <div className="card p-5 h-full">
       <div className="flex items-center justify-between mb-5">
@@ -401,7 +452,7 @@ function PassRatesBoard({ data }: { data: typeof mockDashboard.passRates }) {
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {stages.map((s) => {
           const stage = data[s.key];
           return (
@@ -460,13 +511,38 @@ function RingChart({ value, color }: { value: number; color: string }) {
 
 /* ---------- Master resume card ---------- */
 
-function MasterResumeCard() {
+function MasterResumeCard({
+  resume,
+}: {
+  resume: DashboardSummary['masterResume'];
+}) {
   const navigate = useNavigate();
-  const completion = 92;
+
+  if (!resume) {
+    return (
+      <div className="card p-5 h-full flex flex-col items-center justify-center text-center">
+        <div className="text-[12px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide mb-3">
+          Master Resume
+        </div>
+        <div className="text-[13px] text-[var(--color-text-secondary)]">
+          마스터 이력서가 없어요.
+        </div>
+        <button
+          type="button"
+          onClick={() => navigate('/resumes')}
+          className="btn-outline mt-3"
+        >
+          이력서 만들기
+        </button>
+      </div>
+    );
+  }
+
+  const completion = resume.completionRate;
   return (
     <button
       type="button"
-      onClick={() => navigate('/resumes/1')}
+      onClick={() => navigate(`/resumes/${resume.id}`)}
       className="card card-hover p-5 h-full w-full text-left group"
     >
       <div className="flex items-center justify-between mb-3">
@@ -479,10 +555,10 @@ function MasterResumeCard() {
         </div>
       </div>
       <div className="text-[15px] font-bold text-[var(--color-text-primary)] leading-snug">
-        마스터 이력서
+        {resume.title}
       </div>
       <div className="text-[12px] text-[var(--color-text-tertiary)] mt-1">
-        마지막 수정 4월 12일
+        마지막 수정 {resume.updatedAt.slice(0, 10).replace(/-/g, '.')}
       </div>
 
       {/* Progress */}
@@ -507,8 +583,7 @@ function MasterResumeCard() {
             style={{ width: `${completion}%` }}
           />
         </div>
-        <div className="flex items-center justify-between text-[11px] text-[var(--color-text-tertiary)] mt-2.5">
-          <span>섹션 7/8 완성</span>
+        <div className="flex items-center justify-end text-[11px] text-[var(--color-text-tertiary)] mt-2.5">
           <span className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-300 font-semibold group-hover:gap-1.5 transition-all">
             편집하기
             <IconArrowUpRight className="w-3 h-3" />
@@ -564,12 +639,12 @@ function ActivityHeatmap({
             Activity
           </div>
           <div className="text-[15px] font-bold text-[var(--color-text-primary)] mt-0.5">
-            최근 90일 활동
+            최근 활동
           </div>
         </div>
         <div className="flex items-center gap-6">
-          <Stat label="총 활동" value={`${total}회`} />
-          <Stat label="연속" value={`${streak}일`} />
+          <SmallStat label="총 활동" value={`${total}회`} />
+          <SmallStat label="연속" value={`${streak}일`} />
           <div className="hidden md:flex items-center gap-1.5">
             <span className="text-[10.5px] text-[var(--color-text-tertiary)]">
               적음
@@ -594,7 +669,7 @@ function ActivityHeatmap({
             {week.map((d) => (
               <div
                 key={d.date}
-                title={`${d.date} · ${d.count}회`}
+                title={`${d.date} \u00b7 ${d.count}회`}
                 className="w-[14px] h-[14px] rounded-sm"
                 style={{ backgroundColor: color(d.count) }}
               />
@@ -606,7 +681,7 @@ function ActivityHeatmap({
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function SmallStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="text-right">
       <div className="text-[10px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
@@ -634,7 +709,7 @@ function UpcomingList({
   items,
   onOpen,
 }: {
-  items: typeof mockApplies;
+  items: DashboardSummary['upcomingDeadlines'];
   onOpen: (id: number) => void;
 }) {
   return (
@@ -657,14 +732,7 @@ function UpcomingList({
       ) : (
         <div className="space-y-1.5">
           {items.map((item) => {
-            const daysLeft = Math.max(
-              0,
-              Math.round(
-                (new Date(item.deadline!).getTime() -
-                  new Date('2026-04-15').getTime()) /
-                  (24 * 60 * 60 * 1000),
-              ),
-            );
+            const daysLeft = Math.max(0, item.dDay);
             return (
               <button
                 key={item.id}
@@ -674,7 +742,7 @@ function UpcomingList({
               >
                 <div
                   className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white shrink-0"
-                  style={{ backgroundColor: item.logoColor }}
+                  style={{ backgroundColor: companyColor(item.company) }}
                 >
                   {item.company[0]}
                 </div>
@@ -683,7 +751,7 @@ function UpcomingList({
                     {item.company}
                   </div>
                   <div className="text-[11.5px] text-[var(--color-text-tertiary)] truncate">
-                    {item.position}
+                    {item.position ?? '포지션 미정'}
                   </div>
                 </div>
                 <div className="text-right shrink-0">
@@ -708,51 +776,6 @@ function UpcomingList({
           })}
         </div>
       )}
-    </div>
-  );
-}
-
-/* ---------- Recent activity list ---------- */
-
-function RecentActivityList() {
-  const items = mockDashboard.recentActivity;
-  return (
-    <div className="card p-5 h-full">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <div className="text-[12px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
-            Recent
-          </div>
-          <div className="text-[15px] font-bold text-[var(--color-text-primary)] mt-0.5">
-            최근 활동
-          </div>
-        </div>
-        <IconClock className="w-4 h-4 text-[var(--color-text-tertiary)]" />
-      </div>
-      <ol
-        className="relative ml-2 space-y-4 pl-5"
-        style={{ borderLeft: '1px solid var(--color-border-default)' }}
-      >
-        {items.map((item) => (
-          <li key={item.id} className="relative">
-            <span
-              className="absolute -left-[26.5px] top-1 w-3 h-3 rounded-full"
-              style={{
-                background: 'var(--color-bg-surface)',
-                boxShadow:
-                  '0 0 0 4px var(--color-bg-muted), 0 0 0 5px rgba(99,102,241,0.4)',
-              }}
-            />
-            <div className="text-[13px] font-semibold text-[var(--color-text-primary)]">
-              {item.company ? `${item.company} · ` : ''}
-              {item.text}
-            </div>
-            <div className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5">
-              {item.at.replace(/-/g, '.')}
-            </div>
-          </li>
-        ))}
-      </ol>
     </div>
   );
 }

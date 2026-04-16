@@ -23,8 +23,8 @@ export default function TimelineView({ items, onOpen }: Props) {
   const entries = useMemo(() => {
     const out: Entry[] = [];
     items.forEach((item) => {
-      if (item.createdAt) out.push({ date: item.createdAt, kind: 'created', label: '지원 생성', item });
       if (item.submittedAt) out.push({ date: item.submittedAt, kind: 'submitted', label: '지원서 제출', item });
+      if (item.updatedAt) out.push({ date: item.updatedAt, kind: 'updated', label: '최종 수정', item });
       if (item.deadline) out.push({ date: item.deadline, kind: 'deadline', label: '마감일', item });
     });
     return out.sort((a, b) => (a.date < b.date ? 1 : -1));

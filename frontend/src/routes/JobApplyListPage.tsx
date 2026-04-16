@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { mockApplies } from '../mocks/data';
+import { useQuery } from '@tanstack/react-query';
+import { jobApplyApi } from '../lib/api/jobApply';
 import type { JobApplyStatus, EmploymentType } from '../types/jobApply';
 import {
   IconTable,
@@ -16,7 +17,6 @@ import TableView from '../components/applies/TableView';
 import BoardView from '../components/applies/BoardView';
 import CalendarView from '../components/applies/CalendarView';
 import TimelineView from '../components/applies/TimelineView';
-import Dropdown from '../components/common/Dropdown';
 import AdvancedFilterPanel, {
   emptyAdvancedFilters,
   hasAnyAdvancedFilter,
@@ -77,67 +77,49 @@ export default function JobApplyListPage() {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [advanced, setAdvanced] = useState<AdvancedFilters>(emptyAdvancedFilters);
 
-  // Data that drives the filters (derived from mocks — order matters: years desc).
-  const availableYears = useMemo(() => {
-    const set = new Set<number>();
-    mockApplies.forEach((a) => {
-      const d = a.submittedAt ?? a.createdAt;
-      if (d) set.add(new Date(d).getFullYear());
-    });
-    return [...set].sort((a, b) => b - a);
-  }, []);
+  // Build API params from filters
+  const apiParams = useMemo(() => {
+    const params: Record<string, unknown> = {
+      page: 0,
+      size: 200, // Fetch a large page; client-side sub-filtering by stage
+    };
+    if (employment) params.employmentType = employment;
+    if (search) params.search = search;
+    if (advanced.years.length === 1) params.year = advanced.years[0];
+    if (advanced.submittedFrom) params.from = advanced.submittedFrom;
+    if (advanced.submittedTo) params.to = advanced.submittedTo;
+    return params;
+  }, [employment, search, advanced]);
 
-  const availableTags = useMemo(() => {
-    const set = new Set<string>();
-    mockApplies.forEach((a) => a.tags.forEach((t) => set.add(t)));
-    return [...set].sort();
-  }, []);
+  const {
+    data: pageData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['jobApplies', apiParams],
+    queryFn: () => jobApplyApi.list(apiParams),
+  });
 
-  const availableChannels = useMemo(() => {
-    const set = new Set<string>();
-    mockApplies.forEach((a) => a.channel && set.add(a.channel));
-    return [...set].sort();
-  }, []);
+  const allItems = useMemo(() => pageData?.content ?? [], [pageData]);
 
+  // Client-side filtering for stage tabs, channel, deadline range
   const filtered = useMemo(() => {
-    return mockApplies.filter((a) => {
+    return allItems.filter((a) => {
       if (!matchStageFilter(a.currentStatus, stage)) return false;
-      if (employment && a.employmentType !== employment) return false;
-      if (search) {
-        const q = search.toLowerCase();
-        const hay =
-          `${a.company} ${a.position} ${a.tags.join(' ')}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      // Advanced filters
-      if (advanced.years.length > 0) {
-        const dateStr = a.submittedAt ?? a.createdAt;
-        if (!dateStr) return false;
-        const y = new Date(dateStr).getFullYear();
-        if (!advanced.years.includes(y)) return false;
-      }
-      if (advanced.submittedFrom && (a.submittedAt ?? '') < advanced.submittedFrom)
-        return false;
-      if (advanced.submittedTo && (a.submittedAt ?? '') > advanced.submittedTo)
-        return false;
+      // Advanced filters that need client-side processing
       if (advanced.deadlineFrom && (a.deadline ?? '') < advanced.deadlineFrom)
         return false;
       if (advanced.deadlineTo && (a.deadline ?? '') > advanced.deadlineTo)
         return false;
-      if (advanced.tags.length > 0) {
-        if (!advanced.tags.every((t) => a.tags.includes(t))) return false;
-      }
       if (advanced.channel && a.channel !== advanced.channel) return false;
-      if (advanced.location) {
-        const loc = (a.location ?? '').toLowerCase();
-        if (!loc.includes(advanced.location.toLowerCase())) return false;
-      }
       return true;
     });
-  }, [stage, search, employment, advanced]);
+  }, [allItems, stage, advanced]);
 
+  // Stats from the fetched data
   const stats = useMemo(() => {
-    const all = mockApplies;
+    const all = allItems;
     const active = all.filter(
       (a) =>
         a.currentStatus !== 'FINAL_ACCEPTED' &&
@@ -157,20 +139,27 @@ export default function JobApplyListPage() {
             100,
         )
       : 0;
-    return { total: all.length, active, passed, failed, rate };
-  }, []);
+    return { total: pageData?.totalElements ?? all.length, active, passed, failed, rate };
+  }, [allItems, pageData]);
 
   // Count per stage filter (for chip badges)
   const stageCounts = useMemo(() => {
     const count = (key: StageFilter) =>
-      mockApplies.filter((a) => matchStageFilter(a.currentStatus, key)).length;
+      allItems.filter((a) => matchStageFilter(a.currentStatus, key)).length;
     return {
       all: count('all'),
       active: count('active'),
       passed: count('passed'),
       failed: count('failed'),
     } satisfies Record<StageFilter, number>;
-  }, []);
+  }, [allItems]);
+
+  // Available channels for advanced filter
+  const availableChannels = useMemo(() => {
+    const set = new Set<string>();
+    allItems.forEach((a) => a.channel && set.add(a.channel));
+    return [...set].sort();
+  }, [allItems]);
 
   const resetFilters = () => {
     setSearch('');
@@ -191,11 +180,11 @@ export default function JobApplyListPage() {
     <div className="space-y-6">
       {/* ---------- Summary strip ---------- */}
       <section className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <StatMini label="전체 지원" value={stats.total} color="indigo" />
-        <StatMini label="진행 중" value={stats.active} color="violet" />
-        <StatMini label="최종 합격" value={stats.passed} color="emerald" />
-        <StatMini label="탈락" value={stats.failed} color="rose" />
-        <StatMini label="통과율" value={`${stats.rate}%`} color="amber" />
+        <StatMini label="전체 지원" value={isLoading ? '-' : stats.total} color="indigo" />
+        <StatMini label="진행 중" value={isLoading ? '-' : stats.active} color="violet" />
+        <StatMini label="최종 합격" value={isLoading ? '-' : stats.passed} color="emerald" />
+        <StatMini label="탈락" value={isLoading ? '-' : stats.failed} color="rose" />
+        <StatMini label="통과율" value={isLoading ? '-' : `${stats.rate}%`} color="amber" />
       </section>
 
       {/* ---------- View tabs + toolbar ---------- */}
@@ -243,7 +232,7 @@ export default function JobApplyListPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="회사, 포지션, 태그 검색"
+              placeholder="회사, 포지션 검색"
               className="w-full pl-9 pr-3 py-2 text-[13px] bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
             />
           </div>
@@ -319,15 +308,32 @@ export default function JobApplyListPage() {
             filters={advanced}
             onChange={setAdvanced}
             onClose={() => setAdvancedOpen(false)}
-            availableYears={availableYears}
-            availableTags={availableTags}
+            availableYears={[]}
+            availableTags={[]}
             availableChannels={availableChannels}
           />
         )}
 
         {/* ---------- View body ---------- */}
         <div style={{ background: 'var(--color-bg-surface)' }}>
-          {filtered.length === 0 ? (
+          {isLoading ? (
+            <div className="py-20 flex flex-col items-center text-center">
+              <div className="w-8 h-8 border-3 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+              <div className="text-[13px] text-[var(--color-text-tertiary)] mt-4">
+                지원 목록을 불러오는 중...
+              </div>
+            </div>
+          ) : isError ? (
+            <div className="py-20 flex flex-col items-center text-center">
+              <div className="text-5xl mb-3">&#9888;&#65039;</div>
+              <div className="text-[15px] font-bold text-[var(--color-text-primary)]">
+                데이터를 불러오지 못했어요
+              </div>
+              <div className="text-[12.5px] text-[var(--color-text-tertiary)] mt-1.5">
+                {(error as Error)?.message ?? '네트워크 오류가 발생했습니다.'}
+              </div>
+            </div>
+          ) : filtered.length === 0 ? (
             <EmptyState
               hasSearch={!!search}
               hasFilter={hasAnyFilter && !search}
@@ -423,7 +429,7 @@ function EmptyState({
   if (hasSearch) {
     return (
       <div className="py-20 flex flex-col items-center text-center">
-        <div className="text-5xl mb-3">🔍</div>
+        <div className="text-5xl mb-3">&#128269;</div>
         <div className="text-[15px] font-bold text-[var(--color-text-primary)]">
           '{searchTerm}' 에 해당하는 지원이 없어요
         </div>
@@ -443,7 +449,7 @@ function EmptyState({
   if (hasFilter) {
     return (
       <div className="py-20 flex flex-col items-center text-center">
-        <div className="text-5xl mb-3">🧹</div>
+        <div className="text-5xl mb-3">&#129529;</div>
         <div className="text-[15px] font-bold text-[var(--color-text-primary)]">
           조건에 맞는 지원이 없어요
         </div>
@@ -462,7 +468,7 @@ function EmptyState({
   }
   return (
     <div className="py-20 flex flex-col items-center text-center">
-      <div className="text-5xl mb-3">📇</div>
+      <div className="text-5xl mb-3">&#128195;</div>
       <div className="text-[16px] font-bold text-[var(--color-text-primary)]">
         첫 지원을 등록해 여정을 시작해요
       </div>
@@ -475,3 +481,6 @@ function EmptyState({
     </div>
   );
 }
+
+// We still need the Dropdown import
+import Dropdown from '../components/common/Dropdown';

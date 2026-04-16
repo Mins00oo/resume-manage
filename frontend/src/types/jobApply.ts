@@ -1,3 +1,13 @@
+export type Page<T> = {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number; // 0-indexed current page
+  size: number;
+  first: boolean;
+  last: boolean;
+};
+
 export type JobApplyStatus =
   | 'DRAFT'
   | 'SUBMITTED'

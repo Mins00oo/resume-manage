@@ -6,6 +6,7 @@ import {
   type ApplyItem,
 } from './applyUi';
 import { cn } from '../../lib/cn';
+import { employmentLabel } from '../../lib/statusLabel';
 import { IconChevronUp, IconChevronDown } from '../icons/Icons';
 import Pagination from '../common/Pagination';
 import type { JobApplyStatus } from '../../types/jobApply';
@@ -98,8 +99,7 @@ export default function TableView({ items, onOpen }: Props) {
                 onClick={() => toggleSort('status')}
               />
               <Th>경로</Th>
-              <Th>연봉</Th>
-              <Th>위치</Th>
+              <Th>고용형태</Th>
               <SortableTh
                 label="마감"
                 sortable
@@ -138,13 +138,10 @@ export default function TableView({ items, onOpen }: Props) {
                     <StageBadge item={item} />
                   </td>
                   <td className="py-3 pr-4 text-[var(--color-text-secondary)]">
-                    {item.channel}
+                    {item.channel ?? '-'}
                   </td>
                   <td className="py-3 pr-4 text-[var(--color-text-secondary)]">
-                    {item.salary ?? '-'}
-                  </td>
-                  <td className="py-3 pr-4 text-[var(--color-text-secondary)]">
-                    {item.location ?? '-'}
+                    {employmentLabel(item.employmentType)}
                   </td>
                   <td className="py-3 pr-6 text-right">
                     {dday ? (

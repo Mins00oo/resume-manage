@@ -1,13 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { mockApplies } from '../mocks/data';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { jobApplyApi } from '../lib/api/jobApply';
 import {
-  CompanyAvatar,
-  StageBadge,
-  dDayLabel,
-  stageOf,
+  stageMeta,
   toStage,
-  type ApplyItem,
+  dDayLabel,
+  statusLabel,
+  type Stage,
 } from '../components/applies/applyUi';
 import {
   IconChevronLeft,
@@ -18,8 +18,11 @@ import {
   IconSparkles,
 } from '../components/icons/Icons';
 import { cn } from '../lib/cn';
+import { ALL_STATUSES } from '../lib/statusLabel';
+import { statusLabel as getStatusLabel } from '../lib/statusLabel';
+import { employmentLabel } from '../lib/statusLabel';
 
-const PIPELINE: { key: ReturnType<typeof toStage>; label: string }[] = [
+const PIPELINE: { key: Stage; label: string }[] = [
   { key: 'draft', label: '작성' },
   { key: 'submitted', label: '지원' },
   { key: 'document', label: '서류' },
@@ -29,20 +32,95 @@ const PIPELINE: { key: ReturnType<typeof toStage>; label: string }[] = [
   { key: 'offer', label: '최종' },
 ];
 
+/** Generate a deterministic color from a company name */
+function companyColor(name: string): string {
+  const PALETTE = [
+    '#3182F6', '#FEE500', '#03C75A', '#00C300', '#FF7E36',
+    '#F7324C', '#4B5AFA', '#0A0A0A', '#2AC1BC', '#35C5F0',
+    '#ED1C24', '#742DDD', '#FF6B00', '#1F8CE6', '#5F0080',
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return PALETTE[Math.abs(hash) % PALETTE.length];
+}
+
 export default function JobApplyDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const [editMemo, setEditMemo] = useState('');
+  const [statusPickerOpen, setStatusPickerOpen] = useState(false);
 
-  const item = useMemo<ApplyItem | undefined>(
-    () => mockApplies.find((a) => a.id === Number(id)),
-    [id],
-  );
+  const numericId = Number(id);
 
-  if (!item) {
+  const {
+    data: item,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['jobApply', numericId],
+    queryFn: () => jobApplyApi.get(numericId),
+    enabled: !isNaN(numericId),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => jobApplyApi.delete(numericId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['jobApplies'] });
+      navigate('/applies');
+    },
+    onError: (err: Error) => {
+      alert(err.message || '삭제에 실패했습니다.');
+    },
+  });
+
+  const transitionMutation = useMutation({
+    mutationFn: (to: string) =>
+      jobApplyApi.transition(numericId, to as import('../types/jobApply').JobApplyStatus),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['jobApply', numericId] });
+      queryClient.invalidateQueries({ queryKey: ['jobApplies'] });
+      setStatusPickerOpen(false);
+    },
+    onError: (err: Error) => {
+      alert(err.message || '상태 변경에 실패했습니다.');
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (body: Partial<import('../types/jobApply').JobApplyCreateRequest>) =>
+      jobApplyApi.update(numericId, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['jobApply', numericId] });
+      queryClient.invalidateQueries({ queryKey: ['jobApplies'] });
+      setIsEditing(false);
+    },
+    onError: (err: Error) => {
+      alert(err.message || '수정에 실패했습니다.');
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="py-20 flex flex-col items-center text-center">
+        <div className="w-8 h-8 border-3 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+        <div className="text-[13px] text-[var(--color-text-tertiary)] mt-4">
+          지원 정보를 불러오는 중...
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !item) {
     return (
       <div className="card p-10 text-center">
-        <p className="text-sm text-[var(--color-text-secondary)]">존재하지 않는 지원이에요.</p>
+        <p className="text-sm text-[var(--color-text-secondary)]">
+          {(error as Error)?.message ?? '존재하지 않는 지원이에요.'}
+        </p>
         <button
           type="button"
           onClick={() => navigate('/applies')}
@@ -55,9 +133,19 @@ export default function JobApplyDetailPage() {
   }
 
   const dday = dDayLabel(item.deadline);
-  const stage = stageOf(item);
+  const stage = stageMeta[toStage(item.currentStatus)];
   const currentStage = toStage(item.currentStatus);
   const currentStageIdx = PIPELINE.findIndex((p) => p.key === currentStage);
+  const bgColor = companyColor(item.company);
+
+  const handleStartEdit = () => {
+    setEditMemo(item.memo ?? '');
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = () => {
+    updateMutation.mutate({ memo: editMemo });
+  };
 
   return (
     <div className="space-y-6">
@@ -75,7 +163,7 @@ export default function JobApplyDetailPage() {
         <div
           className="h-20 relative"
           style={{
-            background: `linear-gradient(135deg, ${item.logoColor}bb, ${item.logoColor}66)`,
+            background: `linear-gradient(135deg, ${bgColor}bb, ${bgColor}66)`,
           }}
         >
           <div
@@ -91,9 +179,27 @@ export default function JobApplyDetailPage() {
         <div className="p-6 pt-0">
           <div className="flex items-end justify-between -mt-8 gap-4 flex-wrap">
             <div className="flex items-end gap-4">
-              <CompanyAvatar item={item} size={72} />
+              <div
+                className="rounded-xl flex items-center justify-center text-white font-bold shrink-0 ring-1 ring-black/5 shadow-sm"
+                style={{
+                  width: 72,
+                  height: 72,
+                  backgroundColor: bgColor,
+                  fontSize: 72 * 0.42,
+                }}
+              >
+                {item.company[0]}
+              </div>
               <div className="pb-1">
-                <StageBadge item={item} />
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${stage.bg} ${stage.text} ${stage.border}`}
+                >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: stage.color }}
+                  />
+                  {statusLabel(item.currentStatus)}
+                </span>
                 <div className="text-[26px] font-bold tracking-tight text-[var(--color-text-primary)] mt-2 leading-tight">
                   {item.company}
                 </div>
@@ -103,47 +209,40 @@ export default function JobApplyDetailPage() {
             <div className="flex items-center gap-2 pb-1">
               <button
                 type="button"
-                onClick={() => setIsEditing((v) => !v)}
+                onClick={() => (isEditing ? handleSaveEdit() : handleStartEdit())}
                 className="btn-outline"
+                disabled={updateMutation.isPending}
               >
                 <IconPencil className="w-4 h-4" />
-                {isEditing ? '미리보기' : '편집'}
+                {isEditing ? (updateMutation.isPending ? '저장 중...' : '저장') : '편집'}
               </button>
+              {isEditing && (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="btn-ghost"
+                >
+                  취소
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {
                   if (window.confirm(`"${item.company}" 지원을 삭제할까요?`)) {
-                    navigate('/applies');
+                    deleteMutation.mutate();
                   }
                 }}
+                disabled={deleteMutation.isPending}
                 className="btn-ghost text-rose-600 hover:bg-rose-50"
               >
                 <IconTrash className="w-4 h-4" />
-                삭제
+                {deleteMutation.isPending ? '삭제 중...' : '삭제'}
               </button>
             </div>
           </div>
 
           {/* Meta chips */}
           <div className="flex items-center gap-2 mt-5 flex-wrap">
-            {item.tags.map((tag) => (
-              <span
-                key={tag}
-                className="pill bg-[var(--color-bg-muted)] text-[var(--color-text-primary)]"
-              >
-                #{tag}
-              </span>
-            ))}
-            {item.salary && (
-              <span className="pill bg-emerald-50 text-emerald-700">
-                💰 {item.salary}
-              </span>
-            )}
-            {item.location && (
-              <span className="pill bg-[var(--color-bg-muted)] text-[var(--color-text-primary)]">
-                📍 {item.location}
-              </span>
-            )}
             {dday && (
               <span
                 className={cn(
@@ -153,7 +252,7 @@ export default function JobApplyDetailPage() {
                     : 'bg-blue-50 text-blue-700',
                 )}
               >
-                ⏰ {dday.label} · 마감 {item.deadline?.replace(/-/g, '.')}
+                &#9200; {dday.label} &middot; 마감 {item.deadline?.replace(/-/g, '.')}
               </span>
             )}
           </div>
@@ -195,7 +294,7 @@ export default function JobApplyDetailPage() {
                         : 'bg-[var(--color-bg-surface)] border-[var(--color-border-subtle)] text-[var(--color-text-tertiary)]',
                   )}
                 >
-                  {done ? '✓' : i + 1}
+                  {done ? '\u2713' : i + 1}
                 </div>
                 <div
                   className={cn(
@@ -225,23 +324,25 @@ export default function JobApplyDetailPage() {
             </div>
             <dl className="grid grid-cols-2 gap-5 text-[13px]">
               <Info label="회사" value={item.company} />
-              <Info label="포지션" value={item.position} />
-              <Info label="고용 형태" value={label(item.employmentType)} />
-              <Info label="경로" value={item.channel} />
-              <Info label="연봉" value={item.salary ?? '-'} />
-              <Info label="위치" value={item.location ?? '-'} />
+              <Info label="포지션" value={item.position ?? '-'} />
+              <Info label="고용 형태" value={employmentLabel(item.employmentType)} />
+              <Info label="경로" value={item.channel ?? '-'} />
               <Info
                 label="채용 공고"
                 value={
-                  <a
-                    href={item.jobPostingUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-indigo-600 hover:underline inline-flex items-center gap-1 truncate"
-                  >
-                    {item.jobPostingUrl}
-                    <IconArrowUpRight className="w-3 h-3" />
-                  </a>
+                  item.jobPostingUrl ? (
+                    <a
+                      href={item.jobPostingUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-indigo-600 hover:underline inline-flex items-center gap-1 truncate"
+                    >
+                      {item.jobPostingUrl}
+                      <IconArrowUpRight className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    '-'
+                  )
                 }
                 wide
               />
@@ -263,12 +364,13 @@ export default function JobApplyDetailPage() {
             </div>
             {isEditing ? (
               <textarea
-                defaultValue={item.memo}
+                value={editMemo}
+                onChange={(e) => setEditMemo(e.target.value)}
                 className="w-full min-h-[140px] px-3.5 py-2.5 text-[13px] bg-[var(--color-bg-muted)] border border-[var(--color-border-subtle)] rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 resize-none text-[var(--color-text-primary)]"
               />
             ) : (
               <p className="text-[13px] text-[var(--color-text-primary)] leading-relaxed whitespace-pre-wrap">
-                {item.memo}
+                {item.memo || '메모가 없어요.'}
               </p>
             )}
           </div>
@@ -294,13 +396,32 @@ export default function JobApplyDetailPage() {
                 현재 진행 중인 단계
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => alert('상태 변경 기능은 백엔드 연동 후 사용할 수 있어요.')}
-              className="btn-outline w-full mt-3"
-            >
-              상태 변경
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setStatusPickerOpen((v) => !v)}
+                className="btn-outline w-full mt-3"
+                disabled={transitionMutation.isPending}
+              >
+                {transitionMutation.isPending ? '변경 중...' : '상태 변경'}
+              </button>
+              {statusPickerOpen && (
+                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] rounded-xl shadow-lg max-h-64 overflow-y-auto">
+                  {ALL_STATUSES.filter((s) => s !== item.currentStatus).map(
+                    (s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => transitionMutation.mutate(s)}
+                        className="w-full text-left px-4 py-2.5 text-[12.5px] font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] transition-colors"
+                      >
+                        {getStatusLabel(s)}
+                      </button>
+                    ),
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Timestamps */}
@@ -374,15 +495,4 @@ function TimestampRow({
       </div>
     </li>
   );
-}
-
-function label(t: string | null) {
-  if (!t) return '-';
-  const map: Record<string, string> = {
-    NEW: '신입',
-    EXPERIENCED: '경력',
-    INTERN: '인턴',
-    CONTRACT: '계약직',
-  };
-  return map[t] ?? t;
 }

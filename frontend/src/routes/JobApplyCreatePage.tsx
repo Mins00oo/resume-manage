@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { jobApplyApi } from '../lib/api/jobApply';
+import type { JobApplyCreateRequest, EmploymentType } from '../types/jobApply';
 import { IconChevronLeft, IconSparkles } from '../components/icons/Icons';
 import Dropdown from '../components/common/Dropdown';
 
@@ -17,8 +20,6 @@ type FormState = {
   employmentType: string;
   channel: string;
   deadline: string;
-  salary: string;
-  location: string;
   memo: string;
 };
 
@@ -29,24 +30,51 @@ const emptyState: FormState = {
   employmentType: '',
   channel: '',
   deadline: '',
-  salary: '',
-  location: '',
   memo: '',
 };
 
 export default function JobApplyCreatePage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [form, setForm] = useState<FormState>(emptyState);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleChange = <K extends keyof FormState>(
     key: K,
     value: FormState[K],
   ) => setForm((prev) => ({ ...prev, [key]: value }));
 
+  const createMutation = useMutation({
+    mutationFn: (body: JobApplyCreateRequest) => jobApplyApi.create(body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['jobApplies'] });
+      navigate('/applies');
+    },
+    onError: (err: Error) => {
+      setErrorMsg(err.message || '지원 등록에 실패했습니다.');
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // mock: just return to list
-    navigate('/applies');
+    setErrorMsg('');
+
+    if (!form.company.trim()) {
+      setErrorMsg('회사명은 필수입니다.');
+      return;
+    }
+
+    const body: JobApplyCreateRequest = {
+      company: form.company.trim(),
+    };
+    if (form.position.trim()) body.position = form.position.trim();
+    if (form.jobPostingUrl.trim()) body.jobPostingUrl = form.jobPostingUrl.trim();
+    if (form.employmentType) body.employmentType = form.employmentType as EmploymentType;
+    if (form.channel.trim()) body.channel = form.channel.trim();
+    if (form.deadline) body.deadline = form.deadline;
+    if (form.memo.trim()) body.memo = form.memo.trim();
+
+    createMutation.mutate(body);
   };
 
   return (
@@ -84,11 +112,17 @@ export default function JobApplyCreatePage() {
                 채용 공고 URL로 자동 채우기
               </div>
               <div className="text-[11.5px] text-indigo-700/80 dark:text-indigo-400/80 mt-0.5">
-                채용 공고 링크를 붙여넣으면 AI가 회사 · 포지션 · 마감일을 뽑아줘요.
+                채용 공고 링크를 붙여넣으면 AI가 회사 &middot; 포지션 &middot; 마감일을 뽑아줘요.
               </div>
             </div>
           </div>
         </div>
+
+        {errorMsg && (
+          <div className="mb-5 rounded-lg bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 px-4 py-3 text-[13px] text-rose-700 dark:text-rose-300">
+            {errorMsg}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <Field label="회사" required>
@@ -129,7 +163,7 @@ export default function JobApplyCreatePage() {
               className="input-base"
             />
           </Field>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <Field label="경로">
               <input
                 type="text"
@@ -139,33 +173,15 @@ export default function JobApplyCreatePage() {
                 className="input-base"
               />
             </Field>
-            <Field label="연봉">
+            <Field label="마감일">
               <input
-                type="text"
-                value={form.salary}
-                onChange={(e) => handleChange('salary', e.target.value)}
-                placeholder="예: 6,000~8,000"
-                className="input-base"
-              />
-            </Field>
-            <Field label="위치">
-              <input
-                type="text"
-                value={form.location}
-                onChange={(e) => handleChange('location', e.target.value)}
-                placeholder="예: 서울 강남"
+                type="date"
+                value={form.deadline}
+                onChange={(e) => handleChange('deadline', e.target.value)}
                 className="input-base"
               />
             </Field>
           </div>
-          <Field label="마감일">
-            <input
-              type="date"
-              value={form.deadline}
-              onChange={(e) => handleChange('deadline', e.target.value)}
-              className="input-base"
-            />
-          </Field>
           <Field label="메모">
             <textarea
               value={form.memo}
@@ -184,8 +200,12 @@ export default function JobApplyCreatePage() {
             >
               취소
             </button>
-            <button type="submit" className="btn-primary">
-              저장
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={createMutation.isPending}
+            >
+              {createMutation.isPending ? '저장 중...' : '저장'}
             </button>
           </div>
         </form>
