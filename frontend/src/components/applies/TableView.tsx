@@ -98,8 +98,8 @@ export default function TableView({ items, onOpen }: Props) {
                 dir={sortDir}
                 onClick={() => toggleSort('status')}
               />
-              <Th>경로</Th>
-              <Th>고용형태</Th>
+              <Th className="hidden md:table-cell">경로</Th>
+              <Th className="hidden md:table-cell">고용형태</Th>
               <SortableTh
                 label="마감"
                 sortable
@@ -121,8 +121,8 @@ export default function TableView({ items, onOpen }: Props) {
                   onClick={() => onOpen(item.id)}
                   className="border-b border-[var(--color-border-subtle)] hover:bg-[var(--color-bg-muted)] cursor-pointer transition-colors group"
                 >
-                  <td className="py-3.5 pl-6 pr-4">
-                    <div className="flex items-center gap-3 min-w-0">
+                  <td className="py-3.5 pl-3 md:pl-6 pr-4">
+                    <div className="flex items-center gap-2 md:gap-3 min-w-0">
                       <CompanyAvatar item={item} />
                       <div className="min-w-0">
                         <div className="text-[13.5px] font-semibold text-[var(--color-text-primary)] truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">
@@ -137,10 +137,10 @@ export default function TableView({ items, onOpen }: Props) {
                   <td className="py-3 pr-4">
                     <StageBadge item={item} />
                   </td>
-                  <td className="py-3 pr-4 text-[var(--color-text-secondary)]">
+                  <td className="hidden md:table-cell py-3 pr-4 text-[var(--color-text-secondary)]">
                     {item.channel ?? '-'}
                   </td>
-                  <td className="py-3 pr-4 text-[var(--color-text-secondary)]">
+                  <td className="hidden md:table-cell py-3 pr-4 text-[var(--color-text-secondary)]">
                     {employmentLabel(item.employmentType)}
                   </td>
                   <td className="py-3 pr-6 text-right">

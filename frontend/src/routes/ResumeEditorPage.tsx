@@ -143,6 +143,7 @@ export default function ResumeEditorPage() {
   const [activeSection, setActiveSection] = useState<SectionKey>('profile');
   const [zoom, setZoom] = useState(0.72);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle');
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const initialized = useRef(false);
 
   /* Fetch resume detail */
@@ -319,12 +320,12 @@ export default function ResumeEditorPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-64px)]">
       {/* Editor top bar */}
-      <div className="flex items-center justify-between gap-4 px-6 py-3 bg-white border-b border-slate-200/80">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-center justify-between gap-2 md:gap-4 px-3 md:px-6 py-3 bg-white border-b border-slate-200/80">
+        <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
           <button
             type="button"
             onClick={() => navigate('/resumes')}
-            className="w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-colors shrink-0"
           >
             <IconChevronLeft className="w-4 h-4" />
           </button>
@@ -332,25 +333,25 @@ export default function ResumeEditorPage() {
             type="text"
             value={doc.title}
             onChange={(e) => handleTitleChange(e.target.value)}
-            className="text-[16px] font-bold text-slate-900 bg-transparent border-none focus:outline-none focus:ring-0 min-w-0 truncate"
+            className="text-[14px] md:text-[16px] font-bold text-slate-900 bg-transparent border-none focus:outline-none focus:ring-0 min-w-0 truncate"
           />
           {saveStatus === 'saved' && (
-            <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
+            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-emerald-600 font-medium shrink-0">
               <IconCheck className="w-3.5 h-3.5" />
               저장됨
             </span>
           )}
           {saveStatus === 'saving' && (
-            <span className="text-[11px] text-slate-400 font-medium">저장 중...</span>
+            <span className="hidden sm:inline text-[11px] text-slate-400 font-medium shrink-0">저장 중...</span>
           )}
           {resumeId != null && (
-            <span className="text-[11px] text-slate-400">#{resumeId}</span>
+            <span className="hidden md:inline text-[11px] text-slate-400 shrink-0">#{resumeId}</span>
           )}
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Template selector */}
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+        <div className="flex items-center gap-1.5 md:gap-3 shrink-0">
+          {/* Template selector - hidden on mobile */}
+          <div className="hidden lg:flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
             {TEMPLATES.map((t) => (
               <button
                 key={t.key}
@@ -374,8 +375,8 @@ export default function ResumeEditorPage() {
             ))}
           </div>
 
-          {/* Completion */}
-          <div className="flex items-center gap-2 pl-3 border-l border-slate-200">
+          {/* Completion - simplified on mobile */}
+          <div className="hidden md:flex items-center gap-2 pl-3 border-l border-slate-200">
             <div className="text-right leading-tight">
               <div className="text-[9.5px] font-semibold uppercase text-slate-500 tracking-wider">
                 완성도
@@ -392,31 +393,76 @@ export default function ResumeEditorPage() {
             </div>
           </div>
 
+          {/* Mobile preview toggle button */}
+          <button
+            type="button"
+            onClick={() => setMobilePreviewOpen(true)}
+            className="lg:hidden btn-outline text-[12px] py-1.5 px-2.5"
+          >
+            미리보기
+          </button>
+
           <button
             type="button"
             onClick={() => alert('AI 리뷰 기능은 준비 중이에요.')}
-            className="btn-outline text-[12px] py-1.5 px-3"
+            className="hidden sm:inline-flex btn-outline text-[12px] py-1.5 px-3"
           >
             <IconSparkles className="w-3.5 h-3.5" />
-            AI 리뷰
+            <span className="hidden md:inline">AI 리뷰</span>
           </button>
           <button
             type="button"
             onClick={() => downloadPdfMutation.mutate()}
             disabled={downloadPdfMutation.isPending || resumeId == null}
-            className="btn-primary text-[12px] py-1.5 px-3 disabled:opacity-50"
+            className="btn-primary text-[12px] py-1.5 px-2.5 md:px-3 disabled:opacity-50"
           >
             <IconDownload className="w-3.5 h-3.5" />
-            {downloadPdfMutation.isPending ? '...' : 'PDF'}
+            <span className="hidden md:inline">{downloadPdfMutation.isPending ? '...' : 'PDF'}</span>
           </button>
+        </div>
+      </div>
+
+      {/* Mobile template selector row */}
+      <div className="flex lg:hidden items-center gap-1.5 px-3 py-2 bg-white border-b border-slate-200/80 overflow-x-auto">
+        <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg shrink-0">
+          {TEMPLATES.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() =>
+                setDoc({ ...doc, template: t.key, accentColor: t.color })
+              }
+              className={cn(
+                'flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold transition-all shrink-0',
+                doc.template === t.key
+                  ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/80'
+                  : 'text-slate-500 hover:text-slate-700',
+              )}
+            >
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: t.color }}
+              />
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1.5 ml-auto shrink-0">
+          <span className="text-[10px] text-slate-500 font-semibold">{completion}%</span>
+          <div className="w-12 h-1 rounded-full bg-slate-100 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-indigo-500 to-violet-500"
+              style={{ width: `${completion}%` }}
+            />
+          </div>
         </div>
       </div>
 
       {/* Body split */}
       <div className="flex-1 flex min-h-0">
-        {/* Left: section nav + editor */}
-        <div className="w-[520px] shrink-0 border-r border-slate-200/80 bg-white flex flex-col">
-          {/* Section tabs */}
+        {/* Left: section nav + editor (full width on mobile) */}
+        <div className="w-full lg:w-[520px] shrink-0 lg:border-r border-slate-200/80 bg-white flex flex-col">
+          {/* Section tabs - horizontal scroll */}
           <nav className="flex items-center gap-1 px-3 py-2 border-b border-slate-200/80 overflow-x-auto shrink-0">
             {SECTIONS.map((s) => (
               <button
@@ -424,20 +470,20 @@ export default function ResumeEditorPage() {
                 type="button"
                 onClick={() => setActiveSection(s.key)}
                 className={cn(
-                  'shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11.5px] font-semibold transition-colors',
+                  'shrink-0 inline-flex items-center gap-1 md:gap-1.5 px-2.5 md:px-3 py-1.5 rounded-lg text-[11px] md:text-[11.5px] font-semibold transition-colors',
                   activeSection === s.key
                     ? 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200/60'
                     : 'text-slate-500 hover:bg-slate-100',
                 )}
               >
                 <span>{s.icon}</span>
-                {s.label}
+                <span className="hidden sm:inline">{s.label}</span>
               </button>
             ))}
           </nav>
 
           {/* Editor panel */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-4 md:p-6">
             <ResumeSectionEditor
               doc={doc}
               setDoc={setDoc}
@@ -446,8 +492,8 @@ export default function ResumeEditorPage() {
           </div>
         </div>
 
-        {/* Right: preview */}
-        <div className="flex-1 bg-slate-100 relative overflow-auto">
+        {/* Right: preview (hidden on mobile, shown in modal) */}
+        <div className="hidden lg:block flex-1 bg-slate-100 relative overflow-auto">
           {/* Zoom controls */}
           <div className="sticky top-0 z-10 flex items-center justify-center gap-2 py-2 bg-slate-100/80 backdrop-blur border-b border-slate-200/60">
             <button
@@ -476,6 +522,46 @@ export default function ResumeEditorPage() {
           </div>
         </div>
       </div>
+
+      {/* Mobile preview modal */}
+      {mobilePreviewOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-white flex flex-col">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-white">
+            <div className="text-[14px] font-bold text-slate-900">미리보기</div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setZoom((z) => Math.max(0.3, z - 0.1))}
+                className="w-7 h-7 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center text-sm font-bold"
+              >
+                -
+              </button>
+              <span className="text-[11px] font-semibold text-slate-600 w-10 text-center tabular-nums">
+                {Math.round(zoom * 100)}%
+              </span>
+              <button
+                type="button"
+                onClick={() => setZoom((z) => Math.min(1.2, z + 0.1))}
+                className="w-7 h-7 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center text-sm font-bold"
+              >
+                +
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobilePreviewOpen(false)}
+                className="ml-2 px-3 py-1.5 text-[12px] font-semibold text-slate-700 bg-slate-100 rounded-lg"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-auto bg-slate-100 p-4 flex justify-center">
+            <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}>
+              <ResumePreview doc={doc} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

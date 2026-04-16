@@ -176,21 +176,21 @@ export default function JobApplyDetailPage() {
             }}
           />
         </div>
-        <div className="p-6 pt-0">
-          <div className="flex items-end justify-between -mt-8 gap-4 flex-wrap">
-            <div className="flex items-end gap-4">
+        <div className="p-4 md:p-6 pt-0">
+          <div className="flex flex-col md:flex-row md:items-end justify-between -mt-8 gap-4">
+            <div className="flex items-end gap-3 md:gap-4">
               <div
                 className="rounded-xl flex items-center justify-center text-white font-bold shrink-0 ring-1 ring-black/5 shadow-sm"
                 style={{
-                  width: 72,
-                  height: 72,
+                  width: 56,
+                  height: 56,
                   backgroundColor: bgColor,
-                  fontSize: 72 * 0.42,
+                  fontSize: 56 * 0.42,
                 }}
               >
                 {item.company[0]}
               </div>
-              <div className="pb-1">
+              <div className="pb-1 min-w-0">
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${stage.bg} ${stage.text} ${stage.border}`}
                 >
@@ -200,17 +200,17 @@ export default function JobApplyDetailPage() {
                   />
                   {statusLabel(item.currentStatus)}
                 </span>
-                <div className="text-[26px] font-bold tracking-tight text-[var(--color-text-primary)] mt-2 leading-tight">
+                <div className="text-[20px] md:text-[26px] font-bold tracking-tight text-[var(--color-text-primary)] mt-2 leading-tight truncate">
                   {item.company}
                 </div>
-                <div className="text-[14px] text-[var(--color-text-secondary)]">{item.position}</div>
+                <div className="text-[13px] md:text-[14px] text-[var(--color-text-secondary)] truncate">{item.position}</div>
               </div>
             </div>
             <div className="flex items-center gap-2 pb-1">
               <button
                 type="button"
                 onClick={() => (isEditing ? handleSaveEdit() : handleStartEdit())}
-                className="btn-outline"
+                className="btn-outline flex-1 md:flex-none"
                 disabled={updateMutation.isPending}
               >
                 <IconPencil className="w-4 h-4" />
@@ -220,7 +220,7 @@ export default function JobApplyDetailPage() {
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="btn-ghost"
+                  className="btn-ghost flex-1 md:flex-none"
                 >
                   취소
                 </button>
@@ -233,7 +233,7 @@ export default function JobApplyDetailPage() {
                   }
                 }}
                 disabled={deleteMutation.isPending}
-                className="btn-ghost text-rose-600 hover:bg-rose-50"
+                className="btn-ghost text-rose-600 hover:bg-rose-50 flex-1 md:flex-none"
               >
                 <IconTrash className="w-4 h-4" />
                 {deleteMutation.isPending ? '삭제 중...' : '삭제'}
@@ -260,57 +260,59 @@ export default function JobApplyDetailPage() {
       </div>
 
       {/* Pipeline tracker */}
-      <div className="card p-5">
+      <div className="card p-4 md:p-5">
         <div className="text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-4">
           Progress
         </div>
-        <div className="relative flex items-start justify-between">
-          <div className="absolute top-4 left-8 right-8 h-0.5 bg-[var(--color-border-subtle)]" />
-          <div
-            className="absolute top-4 left-8 h-0.5 bg-indigo-500 transition-all"
-            style={{
-              width: `calc(${
-                currentStageIdx < 0
-                  ? 0
-                  : (currentStageIdx / (PIPELINE.length - 1)) * 100
-              }% - ${currentStageIdx < 0 ? 0 : 32}px)`,
-            }}
-          />
-          {PIPELINE.map((p, i) => {
-            const done = i < currentStageIdx;
-            const current = i === currentStageIdx;
-            return (
-              <div
-                key={p.key}
-                className="relative z-10 flex flex-col items-center gap-2"
-              >
+        <div className="overflow-x-auto -mx-1 px-1 pb-1">
+          <div className="relative flex items-start justify-between min-w-[420px]">
+            <div className="absolute top-4 left-8 right-8 h-0.5 bg-[var(--color-border-subtle)]" />
+            <div
+              className="absolute top-4 left-8 h-0.5 bg-indigo-500 transition-all"
+              style={{
+                width: `calc(${
+                  currentStageIdx < 0
+                    ? 0
+                    : (currentStageIdx / (PIPELINE.length - 1)) * 100
+                }% - ${currentStageIdx < 0 ? 0 : 32}px)`,
+              }}
+            />
+            {PIPELINE.map((p, i) => {
+              const done = i < currentStageIdx;
+              const current = i === currentStageIdx;
+              return (
                 <div
-                  className={cn(
-                    'w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold border-2 transition-all',
-                    done
-                      ? 'bg-indigo-500 border-indigo-500 text-white'
-                      : current
-                        ? 'bg-[var(--color-bg-surface)] border-indigo-500 text-indigo-700 ring-4 ring-indigo-100'
-                        : 'bg-[var(--color-bg-surface)] border-[var(--color-border-subtle)] text-[var(--color-text-tertiary)]',
-                  )}
+                  key={p.key}
+                  className="relative z-10 flex flex-col items-center gap-1.5 md:gap-2"
                 >
-                  {done ? '\u2713' : i + 1}
+                  <div
+                    className={cn(
+                      'w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-[10px] md:text-[11px] font-bold border-2 transition-all',
+                      done
+                        ? 'bg-indigo-500 border-indigo-500 text-white'
+                        : current
+                          ? 'bg-[var(--color-bg-surface)] border-indigo-500 text-indigo-700 ring-4 ring-indigo-100'
+                          : 'bg-[var(--color-bg-surface)] border-[var(--color-border-subtle)] text-[var(--color-text-tertiary)]',
+                    )}
+                  >
+                    {done ? '\u2713' : i + 1}
+                  </div>
+                  <div
+                    className={cn(
+                      'text-[10px] md:text-[11px] font-semibold',
+                      current
+                        ? 'text-indigo-700'
+                        : done
+                          ? 'text-[var(--color-text-primary)]'
+                          : 'text-[var(--color-text-tertiary)]',
+                    )}
+                  >
+                    {p.label}
+                  </div>
                 </div>
-                <div
-                  className={cn(
-                    'text-[11px] font-semibold',
-                    current
-                      ? 'text-indigo-700'
-                      : done
-                        ? 'text-[var(--color-text-primary)]'
-                        : 'text-[var(--color-text-tertiary)]',
-                  )}
-                >
-                  {p.label}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 

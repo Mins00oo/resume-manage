@@ -184,7 +184,9 @@ export default function JobApplyListPage() {
         <StatMini label="진행 중" value={isLoading ? '-' : stats.active} color="violet" />
         <StatMini label="최종 합격" value={isLoading ? '-' : stats.passed} color="emerald" />
         <StatMini label="탈락" value={isLoading ? '-' : stats.failed} color="rose" />
-        <StatMini label="통과율" value={isLoading ? '-' : `${stats.rate}%`} color="amber" />
+        <div className="col-span-2 md:col-span-1">
+          <StatMini label="통과율" value={isLoading ? '-' : `${stats.rate}%`} color="amber" />
+        </div>
       </section>
 
       {/* ---------- View tabs + toolbar ---------- */}
@@ -192,7 +194,7 @@ export default function JobApplyListPage() {
         {/* Row 1: view tabs + primary CTA */}
         <div className="flex items-center justify-between gap-3 border-b border-[var(--color-border-subtle)] px-4 py-3">
           <div
-            className="flex items-center gap-0.5 p-1 rounded-xl"
+            className="flex items-center gap-0.5 p-1 rounded-xl overflow-x-auto"
             style={{ background: 'var(--color-bg-muted)' }}
           >
             {VIEWS.map(({ key, label, Icon }) => (
@@ -201,32 +203,33 @@ export default function JobApplyListPage() {
                 type="button"
                 onClick={() => setView(key)}
                 className={cn(
-                  'inline-flex items-center gap-1.5 px-3 py-1.5 text-[12.5px] font-semibold rounded-lg transition-all',
+                  'inline-flex items-center gap-1.5 px-3 py-1.5 text-[12.5px] font-semibold rounded-lg transition-all shrink-0',
                   view === key
                     ? 'bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] shadow-sm ring-1 ring-[var(--color-border-subtle)]'
                     : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]',
                 )}
               >
                 <Icon className="w-[15px] h-[15px]" />
-                <span>{label}</span>
+                <span className="hidden sm:inline">{label}</span>
               </button>
             ))}
           </div>
           <button
             type="button"
             onClick={() => navigate('/applies/new')}
-            className="btn-primary"
+            className="btn-primary shrink-0"
           >
-            <IconPlus className="w-4 h-4" />새 지원 등록
+            <IconPlus className="w-4 h-4" /><span className="hidden sm:inline">새 지원 등록</span>
           </button>
         </div>
 
         {/* Row 2: filters/toolbar */}
         <div
-          className="flex items-center gap-3 px-4 py-3 border-b border-[var(--color-border-subtle)] flex-wrap"
+          className="flex flex-col md:flex-row md:items-center gap-3 px-4 py-3 border-b border-[var(--color-border-subtle)]"
           style={{ background: 'color-mix(in srgb, var(--color-bg-muted) 50%, transparent)' }}
         >
-          <div className="relative flex-1 min-w-[220px]">
+          {/* Search */}
+          <div className="relative flex-1 min-w-0 md:min-w-[220px]">
             <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-tertiary)]" />
             <input
               type="text"
@@ -237,8 +240,9 @@ export default function JobApplyListPage() {
             />
           </div>
 
+          {/* Stage filter chips - horizontal scroll on mobile */}
           <div
-            className="flex items-center gap-1 bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] rounded-lg p-0.5"
+            className="flex items-center gap-1 bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] rounded-lg p-0.5 overflow-x-auto flex-nowrap shrink-0"
           >
             {STAGE_FILTERS.map((f) => (
               <button
@@ -246,7 +250,7 @@ export default function JobApplyListPage() {
                 type="button"
                 onClick={() => setStage(f.key)}
                 className={cn(
-                  'px-3 py-1.5 text-[12px] font-semibold rounded-md transition-colors inline-flex items-center gap-1.5',
+                  'px-2.5 md:px-3 py-1.5 text-[12px] font-semibold rounded-md transition-colors inline-flex items-center gap-1 md:gap-1.5 shrink-0 whitespace-nowrap',
                   stage === f.key
                     ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/[0.12] dark:text-indigo-300'
                     : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]',
@@ -265,40 +269,43 @@ export default function JobApplyListPage() {
             ))}
           </div>
 
-          <Dropdown
-            value={employment}
-            onChange={(v) => setEmployment(v as EmploymentType | '')}
-            options={[
-              { value: 'NEW', label: '신입' },
-              { value: 'EXPERIENCED', label: '경력' },
-              { value: 'INTERN', label: '인턴' },
-              { value: 'CONTRACT', label: '계약직' },
-            ]}
-            emptyLabel="전체 고용형태"
-          />
+          {/* Employment dropdown + advanced filter */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <Dropdown
+              value={employment}
+              onChange={(v) => setEmployment(v as EmploymentType | '')}
+              options={[
+                { value: 'NEW', label: '신입' },
+                { value: 'EXPERIENCED', label: '경력' },
+                { value: 'INTERN', label: '인턴' },
+                { value: 'CONTRACT', label: '계약직' },
+              ]}
+              emptyLabel="전체 고용형태"
+            />
 
-          <button
-            type="button"
-            onClick={() => setAdvancedOpen((v) => !v)}
-            className={cn(
-              'inline-flex items-center gap-1.5 px-3 py-2 text-[12.5px] font-medium rounded-lg transition-colors',
-              advancedOpen || advancedActive
-                ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/[0.12] dark:text-indigo-300'
-                : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)]',
-            )}
-          >
-            <IconFilter className="w-4 h-4" />
-            고급 필터
-            {advancedActive && (
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-            )}
-          </button>
+            <button
+              type="button"
+              onClick={() => setAdvancedOpen((v) => !v)}
+              className={cn(
+                'inline-flex items-center gap-1.5 px-3 py-2 text-[12.5px] font-medium rounded-lg transition-colors shrink-0',
+                advancedOpen || advancedActive
+                  ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/[0.12] dark:text-indigo-300'
+                  : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)]',
+              )}
+            >
+              <IconFilter className="w-4 h-4" />
+              <span className="hidden sm:inline">고급 필터</span>
+              {advancedActive && (
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+              )}
+            </button>
 
-          <div className="ml-auto text-[12px] text-[var(--color-text-tertiary)] tabular-nums">
-            <span className="font-semibold text-[var(--color-text-secondary)]">
-              {filtered.length.toLocaleString()}
-            </span>
-            건 표시
+            <div className="ml-auto text-[12px] text-[var(--color-text-tertiary)] tabular-nums">
+              <span className="font-semibold text-[var(--color-text-secondary)]">
+                {filtered.length.toLocaleString()}
+              </span>
+              건 표시
+            </div>
           </div>
         </div>
 

@@ -71,10 +71,11 @@ export default function HomePage() {
           <div className="text-sm text-[var(--color-text-tertiary)] font-medium">
             {displayName ? `안녕하세요, ${displayName}님` : '안녕하세요'}
           </div>
-          <div className="text-[22px] font-bold tracking-tight text-[var(--color-text-primary)] mt-0.5">
+          <div className="text-[18px] md:text-[22px] font-bold tracking-tight text-[var(--color-text-primary)] mt-0.5">
             오늘도 커리어 한 걸음 나아가볼까요?
           </div>
         </div>
+        {/* Desktop period pills */}
         <div className="hidden md:flex items-center gap-2">
           {(['3m', '6m', 'all'] as const).map((key) => (
             <PeriodPill
@@ -84,6 +85,18 @@ export default function HomePage() {
               onClick={() => setPeriod(key)}
             />
           ))}
+        </div>
+        {/* Mobile period selector */}
+        <div className="flex md:hidden items-center">
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value as '3m' | '6m' | 'all')}
+            className="text-[12px] font-medium bg-[var(--color-bg-muted)] text-[var(--color-text-primary)] border border-[var(--color-border-default)] rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+          >
+            <option value="3m">최근 3개월</option>
+            <option value="6m">6개월</option>
+            <option value="all">전체</option>
+          </select>
         </div>
       </div>
 
@@ -241,7 +254,7 @@ function FocusCard({ focus, onOpen, onAddNew }: FocusCardProps) {
         }}
       />
 
-      <div className="relative p-7 lg:p-8 text-white h-full flex flex-col">
+      <div className="relative p-5 md:p-7 lg:p-8 text-white h-full flex flex-col">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 border border-white/15 text-[10.5px] tracking-wide text-white/85 backdrop-blur">
             <IconFire className="w-3.5 h-3.5 text-orange-300" />
@@ -633,7 +646,7 @@ function ActivityHeatmap({
 
   return (
     <div className="card p-5">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
           <div className="text-[12px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
             Activity
@@ -642,7 +655,7 @@ function ActivityHeatmap({
             최근 활동
           </div>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 md:gap-6">
           <SmallStat label="총 활동" value={`${total}회`} />
           <SmallStat label="연속" value={`${streak}일`} />
           <div className="hidden md:flex items-center gap-1.5">

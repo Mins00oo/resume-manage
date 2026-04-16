@@ -88,7 +88,7 @@ export default function JobApplyCreatePage() {
         지원 목록
       </button>
 
-      <div className="card p-8">
+      <div className="card p-5 md:p-8">
         <div className="mb-6">
           <div className="text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
             New Application
@@ -192,17 +192,17 @@ export default function JobApplyCreatePage() {
             />
           </Field>
 
-          <div className="flex items-center justify-end gap-2 pt-3">
+          <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 pt-3">
             <button
               type="button"
               onClick={() => navigate('/applies')}
-              className="btn-ghost"
+              className="btn-ghost w-full sm:w-auto"
             >
               취소
             </button>
             <button
               type="submit"
-              className="btn-primary"
+              className="btn-primary w-full sm:w-auto"
               disabled={createMutation.isPending}
             >
               {createMutation.isPending ? '저장 중...' : '저장'}

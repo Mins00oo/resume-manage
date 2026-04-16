@@ -72,13 +72,13 @@ export default function CalendarView({ items, onOpen }: Props) {
   return (
     <div className="p-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          {/* Year nav */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-1 md:gap-2">
+          {/* Year nav - hide on mobile */}
           <button
             type="button"
             onClick={prevYear}
-            className="w-7 h-7 rounded-lg text-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors text-[11px] font-bold"
+            className="hidden sm:flex w-7 h-7 rounded-lg text-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-muted)] items-center justify-center transition-colors text-[11px] font-bold"
           >
             ‹‹
           </button>
@@ -86,36 +86,36 @@ export default function CalendarView({ items, onOpen }: Props) {
           <button
             type="button"
             onClick={prev}
-            className="w-8 h-8 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
+            className="w-7 md:w-8 h-7 md:h-8 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
           >
             <IconChevronLeft className="w-4 h-4" />
           </button>
-          <div className="text-[15px] font-bold text-[var(--color-text-primary)] min-w-[120px] text-center">
+          <div className="text-[13px] md:text-[15px] font-bold text-[var(--color-text-primary)] min-w-[100px] md:min-w-[120px] text-center">
             {monthLabel}
           </div>
           <button
             type="button"
             onClick={next}
-            className="w-8 h-8 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
+            className="w-7 md:w-8 h-7 md:h-8 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
           >
             <IconChevronRight className="w-4 h-4" />
           </button>
           <button
             type="button"
             onClick={nextYear}
-            className="w-7 h-7 rounded-lg text-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors text-[11px] font-bold"
+            className="hidden sm:flex w-7 h-7 rounded-lg text-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-muted)] items-center justify-center transition-colors text-[11px] font-bold"
           >
             ››
           </button>
           <button
             type="button"
             onClick={today}
-            className="ml-2 px-3 py-1.5 text-[12px] font-semibold text-[var(--color-text-secondary)] bg-[var(--color-bg-muted)] hover:brightness-95 rounded-lg transition-colors"
+            className="ml-1 md:ml-2 px-2 md:px-3 py-1 md:py-1.5 text-[11px] md:text-[12px] font-semibold text-[var(--color-text-secondary)] bg-[var(--color-bg-muted)] hover:brightness-95 rounded-lg transition-colors"
           >
             오늘
           </button>
         </div>
-        <div className="flex items-center gap-3 text-[11px] text-[var(--color-text-secondary)]">
+        <div className="flex items-center gap-3 text-[10px] md:text-[11px] text-[var(--color-text-secondary)]">
           <LegendDot color="#ef4444" label="마감" />
           <LegendDot color="#6366f1" label="제출" />
         </div>
@@ -147,7 +147,7 @@ export default function CalendarView({ items, onOpen }: Props) {
             <div
               key={iso}
               className={cn(
-                'min-h-[110px] border-r border-b border-[var(--color-border-subtle)] last:border-r-0 p-1.5 relative flex flex-col',
+                'min-h-[80px] md:min-h-[110px] border-r border-b border-[var(--color-border-subtle)] last:border-r-0 p-1 md:p-1.5 relative flex flex-col',
                 !cell.inMonth && 'opacity-40',
                 idx % 7 === 6 && 'border-r-0',
                 idx >= 35 && 'border-b-0',
@@ -156,7 +156,7 @@ export default function CalendarView({ items, onOpen }: Props) {
               <div className="flex items-center justify-between">
                 <span
                   className={cn(
-                    'text-[11.5px] font-semibold',
+                    'text-[10px] md:text-[11.5px] font-semibold',
                     !cell.inMonth
                       ? 'text-[var(--color-text-tertiary)]'
                       : isWeekend
@@ -171,8 +171,8 @@ export default function CalendarView({ items, onOpen }: Props) {
                   {cell.day}
                 </span>
               </div>
-              <div className="mt-1 space-y-1 overflow-hidden">
-                {events.slice(0, 3).map((ev) => {
+              <div className="mt-0.5 md:mt-1 space-y-0.5 md:space-y-1 overflow-hidden">
+                {events.slice(0, 2).map((ev) => {
                   const s = stageOf(ev.item);
                   const isDeadline = ev.kind === 'deadline';
                   return (
@@ -181,23 +181,23 @@ export default function CalendarView({ items, onOpen }: Props) {
                       type="button"
                       onClick={() => onOpen(ev.applyId)}
                       className={cn(
-                        'w-full text-left px-1.5 py-1 rounded text-[10.5px] font-medium truncate border',
+                        'w-full text-left px-1 md:px-1.5 py-0.5 md:py-1 rounded text-[9px] md:text-[10.5px] font-medium truncate border',
                         isDeadline
                           ? 'bg-rose-50 text-rose-700 border-rose-100 hover:bg-rose-100'
                           : `${s.bg} ${s.text} ${s.border} hover:brightness-95`,
                       )}
                       title={`${ev.item.company} · ${ev.label}`}
                     >
-                      <span className="mr-1">
+                      <span className="mr-0.5 md:mr-1 hidden sm:inline">
                         {isDeadline ? '⏰' : '📤'}
                       </span>
                       {ev.item.company}
                     </button>
                   );
                 })}
-                {events.length > 3 && (
-                  <div className="text-[10px] text-[var(--color-text-tertiary)] pl-1.5">
-                    +{events.length - 3}
+                {events.length > 2 && (
+                  <div className="text-[9px] md:text-[10px] text-[var(--color-text-tertiary)] pl-1 md:pl-1.5">
+                    +{events.length - 2}
                   </div>
                 )}
               </div>
