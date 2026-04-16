@@ -154,6 +154,7 @@ export default function AppShell() {
           </div>
           <button
             type="button"
+            onClick={() => alert('설정 페이지는 준비 중이에요.')}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)] transition-all"
           >
             <IconSettings className="w-[18px] h-[18px] shrink-0 text-[var(--color-text-tertiary)]" />
@@ -231,15 +232,6 @@ export default function AppShell() {
                     border: '1px solid transparent',
                   }}
                 />
-                <kbd
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-mono text-[var(--color-text-tertiary)] rounded px-1.5 py-0.5"
-                  style={{
-                    background: 'var(--color-bg-surface)',
-                    border: '1px solid var(--color-border-subtle)',
-                  }}
-                >
-                  ⌘K
-                </kbd>
               </div>
 
               {/* Theme toggle */}
@@ -258,6 +250,7 @@ export default function AppShell() {
 
               <button
                 type="button"
+                onClick={() => alert('알림 기능은 준비 중이에요.')}
                 className="relative w-10 h-10 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
               >
                 <IconBell className="w-[18px] h-[18px]" />

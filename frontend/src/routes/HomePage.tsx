@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { mockDashboard, mockApplies, mockMe } from '../mocks/data';
 import {
@@ -15,6 +15,7 @@ import { useThemeStore } from '../store/themeStore';
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const [period, setPeriod] = useState<'3m' | '6m' | 'all'>('3m');
   const data = mockDashboard;
 
   const upcoming = useMemo(
@@ -41,9 +42,14 @@ export default function HomePage() {
           </div>
         </div>
         <div className="hidden md:flex items-center gap-2">
-          <PeriodPill label="최근 3개월" active />
-          <PeriodPill label="6개월" />
-          <PeriodPill label="전체" />
+          {(['3m', '6m', 'all'] as const).map((key) => (
+            <PeriodPill
+              key={key}
+              label={{ '3m': '최근 3개월', '6m': '6개월', all: '전체' }[key]}
+              active={period === key}
+              onClick={() => setPeriod(key)}
+            />
+          ))}
         </div>
       </div>
 
@@ -122,10 +128,11 @@ export default function HomePage() {
 
 /* ------------------------------------------------------------------ */
 
-function PeriodPill({ label, active }: { label: string; active?: boolean }) {
+function PeriodPill({ label, active, onClick }: { label: string; active?: boolean; onClick?: () => void }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className={cn(
         'px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors',
         active

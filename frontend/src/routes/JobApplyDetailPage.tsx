@@ -109,7 +109,15 @@ export default function JobApplyDetailPage() {
                 <IconPencil className="w-4 h-4" />
                 {isEditing ? '미리보기' : '편집'}
               </button>
-              <button type="button" className="btn-ghost text-rose-600 hover:bg-rose-50">
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm(`"${item.company}" 지원을 삭제할까요?`)) {
+                    navigate('/applies');
+                  }
+                }}
+                className="btn-ghost text-rose-600 hover:bg-rose-50"
+              >
                 <IconTrash className="w-4 h-4" />
                 삭제
               </button>
@@ -246,6 +254,7 @@ export default function JobApplyDetailPage() {
               <div className="text-[15px] font-bold text-[var(--color-text-primary)]">메모</div>
               <button
                 type="button"
+                onClick={() => alert('AI 요약 기능은 준비 중이에요.')}
                 className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-indigo-600 hover:text-indigo-700"
               >
                 <IconSparkles className="w-3.5 h-3.5" />
@@ -285,7 +294,11 @@ export default function JobApplyDetailPage() {
                 현재 진행 중인 단계
               </div>
             </div>
-            <button type="button" className="btn-outline w-full mt-3">
+            <button
+              type="button"
+              onClick={() => alert('상태 변경 기능은 백엔드 연동 후 사용할 수 있어요.')}
+              className="btn-outline w-full mt-3"
+            >
               상태 변경
             </button>
           </div>
