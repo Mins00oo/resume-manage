@@ -163,6 +163,13 @@ export default function ResumeEditorPage() {
     prevDocForStatus.current = doc;
   }, [doc, saveStatus]);
 
+  /* Auto-reset 'saved' status after 2 seconds */
+  useEffect(() => {
+    if (saveStatus !== 'saved') return;
+    const timer = setTimeout(() => setSaveStatus('idle'), 2000);
+    return () => clearTimeout(timer);
+  }, [saveStatus]);
+
   /* Auto-save debounce */
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevDocRef = useRef(doc);
@@ -458,7 +465,10 @@ export default function ResumeEditorPage() {
       <div className="lg:hidden">
         <ResumeBottomBar
           completion={completion}
-          onSave={() => saveBasicInfoMutation.mutate()}
+          onSave={() => {
+            if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+            saveBasicInfoMutation.mutate();
+          }}
           saving={saveBasicInfoMutation.isPending}
           saved={saveStatus === 'saved'}
           onSettings={() => setMobilePreviewOpen(true)}

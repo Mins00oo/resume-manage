@@ -14,10 +14,9 @@ export default function ResumeBottomBar({ completion, onSave, onSettings, onMore
     <div
       className="fixed left-0 right-0 z-30 border-t"
       style={{
-        bottom: 0,
+        bottom: 'calc(60px + env(safe-area-inset-bottom, 0px))',
         background: 'var(--color-bg-surface)',
         borderColor: 'var(--color-border-subtle)',
-        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 60px)',
       }}
     >
       {/* Progress bar */}
