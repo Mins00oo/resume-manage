@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
@@ -14,6 +15,8 @@ import {
   IconPlus,
   IconSun,
   IconMoon,
+  IconMenu,
+  IconX,
 } from '../icons/Icons';
 import { cn } from '../../lib/cn';
 
@@ -47,6 +50,8 @@ export default function AppShell() {
   const theme = useThemeStore((s) => s.theme);
   const toggleTheme = useThemeStore((s) => s.toggle);
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   // Mock data fallback: when no real API, we just show a sample user.
   const me = mockMe;
 
@@ -54,6 +59,8 @@ export default function AppShell() {
     clearToken();
     navigate('/login', { replace: true });
   };
+
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   const page = matchPageTitle(location.pathname);
 
@@ -68,9 +75,22 @@ export default function AppShell() {
         color: 'var(--color-text-primary)',
       }}
     >
+      {/* ---------- Mobile sidebar backdrop ---------- */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={closeSidebar}
+          aria-hidden
+        />
+      )}
+
       {/* ---------- Sidebar ---------- */}
       <aside
-        className="fixed inset-y-0 left-0 w-64 flex flex-col z-30"
+        className={cn(
+          'fixed inset-y-0 left-0 w-64 flex flex-col z-50 transition-transform duration-300 ease-in-out',
+          'md:translate-x-0 md:z-30',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+        )}
         style={{
           background: 'var(--color-bg-surface)',
           borderRight: '1px solid var(--color-border-subtle)',
@@ -85,7 +105,7 @@ export default function AppShell() {
               R.
             </span>
           </div>
-          <div className="leading-tight">
+          <div className="leading-tight flex-1 min-w-0">
             <div className="text-[15px] font-bold tracking-tight text-[var(--color-text-primary)]">
               Resume Manage
             </div>
@@ -93,26 +113,34 @@ export default function AppShell() {
               Career workspace
             </div>
           </div>
+          {/* Close button — mobile only */}
+          <button
+            type="button"
+            onClick={closeSidebar}
+            className="md:hidden w-8 h-8 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
+          >
+            <IconX className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Quick add */}
         <div className="px-4 pt-4">
           <button
             type="button"
-            onClick={() => navigate('/applies/new')}
+            onClick={() => { navigate('/applies/new'); closeSidebar(); }}
             className="w-full group flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 shadow-md shadow-indigo-600/20 active:scale-[0.99] transition-all"
           >
             <span className="flex items-center gap-2">
               <IconPlus className="w-4 h-4" />
               <span>새 지원 추가</span>
             </span>
-            <span className="text-[10px] font-mono text-white/80 bg-white/10 border border-white/20 rounded px-1.5 py-0.5">
+            <span className="text-[10px] font-mono text-white/80 bg-white/10 border border-white/20 rounded px-1.5 py-0.5 hidden md:inline">
               ⌘N
             </span>
           </button>
         </div>
 
-        <nav className="flex-1 px-3 pt-5 pb-4 space-y-0.5">
+        <nav className="flex-1 px-3 pt-5 pb-4 space-y-0.5 overflow-y-auto">
           <div className="px-3 pb-2 text-[10px] font-semibold tracking-[0.14em] uppercase text-[var(--color-text-tertiary)]">
             Workspace
           </div>
@@ -123,6 +151,7 @@ export default function AppShell() {
                 key={item.to}
                 to={item.to}
                 end={item.end}
+                onClick={closeSidebar}
                 className={({ isActive }) =>
                   cn(
                     'flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all',
@@ -200,7 +229,7 @@ export default function AppShell() {
       </aside>
 
       {/* ---------- Main ---------- */}
-      <main className="pl-64 min-h-screen flex flex-col">
+      <main className="md:pl-64 min-h-screen flex flex-col pb-16 md:pb-0">
         {/* Top bar */}
         <header
           className="sticky top-0 z-20 backdrop-blur-lg"
@@ -209,18 +238,33 @@ export default function AppShell() {
             borderBottom: '1px solid var(--color-border-subtle)',
           }}
         >
-          <div className="flex items-center justify-between h-16 px-8">
-            <div className="min-w-0">
-              <h1 className="text-[18px] font-bold tracking-tight text-[var(--color-text-primary)] truncate">
-                {page.title}
-              </h1>
-              <p className="text-[12px] text-[var(--color-text-tertiary)] mt-0.5 truncate">
-                {page.subtitle}
-              </p>
+          <div className="flex items-center justify-between h-14 md:h-16 px-4 md:px-8">
+            {/* Left side: hamburger (mobile) + title */}
+            <div className="flex items-center gap-3 min-w-0">
+              {/* Hamburger — mobile only */}
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(true)}
+                className="md:hidden w-9 h-9 -ml-1 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
+                aria-label="메뉴 열기"
+              >
+                <IconMenu className="w-5 h-5" />
+              </button>
+
+              <div className="min-w-0">
+                <h1 className="text-[16px] md:text-[18px] font-bold tracking-tight text-[var(--color-text-primary)] truncate">
+                  {page.title}
+                </h1>
+                <p className="text-[11px] md:text-[12px] text-[var(--color-text-tertiary)] mt-0.5 truncate hidden md:block">
+                  {page.subtitle}
+                </p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <div className="relative w-72">
+            {/* Right side */}
+            <div className="flex items-center gap-1.5 md:gap-2">
+              {/* Search bar — desktop only */}
+              <div className="relative w-72 hidden md:block">
                 <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-tertiary)]" />
                 <input
                   type="text"
@@ -234,12 +278,21 @@ export default function AppShell() {
                 />
               </div>
 
+              {/* Search icon — mobile only */}
+              <button
+                type="button"
+                onClick={() => alert('검색 기능은 준비 중이에요.')}
+                className="md:hidden w-9 h-9 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
+              >
+                <IconSearch className="w-[18px] h-[18px]" />
+              </button>
+
               {/* Theme toggle */}
               <button
                 type="button"
                 onClick={toggleTheme}
                 title={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
-                className="relative w-10 h-10 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
+                className="relative w-9 h-9 md:w-10 md:h-10 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
               >
                 {theme === 'dark' ? (
                   <IconSun className="w-[18px] h-[18px]" />
@@ -251,11 +304,11 @@ export default function AppShell() {
               <button
                 type="button"
                 onClick={() => alert('알림 기능은 준비 중이에요.')}
-                className="relative w-10 h-10 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
+                className="relative w-9 h-9 md:w-10 md:h-10 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
               >
                 <IconBell className="w-[18px] h-[18px]" />
                 <span
-                  className="absolute top-2 right-2.5 w-1.5 h-1.5 rounded-full bg-rose-500"
+                  className="absolute top-1.5 right-2 md:top-2 md:right-2.5 w-1.5 h-1.5 rounded-full bg-rose-500"
                   style={{ boxShadow: '0 0 0 2px var(--color-bg-surface)' }}
                 />
               </button>
@@ -263,7 +316,7 @@ export default function AppShell() {
           </div>
         </header>
 
-        <div className={cn('flex-1', isImmersive ? '' : 'px-8 py-8')}>
+        <div className={cn('flex-1', isImmersive ? '' : 'px-4 md:px-8 py-6 md:py-8')}>
           <div
             className={cn(
               isImmersive ? '' : 'max-w-[1360px] mx-auto animate-fade-up',
@@ -273,6 +326,54 @@ export default function AppShell() {
           </div>
         </div>
       </main>
+
+      {/* ---------- Bottom Tab Bar — mobile only ---------- */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
+        style={{
+          background: 'var(--color-bg-surface)',
+          borderTop: '1px solid var(--color-border-subtle)',
+        }}
+      >
+        <div className="flex items-center justify-around h-[60px] px-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              item.end
+                ? location.pathname === item.to
+                : location.pathname.startsWith(item.to) && (item.to !== '/' || location.pathname === '/');
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1"
+              >
+                <Icon
+                  className={cn(
+                    'w-[22px] h-[22px] transition-colors',
+                    isActive
+                      ? 'text-indigo-600 dark:text-indigo-400'
+                      : 'text-[var(--color-text-tertiary)]',
+                  )}
+                />
+                <span
+                  className={cn(
+                    'text-[10px] font-medium transition-colors',
+                    isActive
+                      ? 'text-indigo-600 dark:text-indigo-400'
+                      : 'text-[var(--color-text-tertiary)]',
+                  )}
+                >
+                  {item.label}
+                </span>
+              </NavLink>
+            );
+          })}
+        </div>
+        {/* Safe area for phones with home indicator */}
+        <div className="h-[env(safe-area-inset-bottom)]" />
+      </nav>
     </div>
   );
 }
