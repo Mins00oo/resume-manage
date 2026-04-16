@@ -11,6 +11,7 @@ import {
 } from '../components/icons/Icons';
 import { cn } from '../lib/cn';
 import { statusLabel } from '../lib/statusLabel';
+import { useThemeStore } from '../store/themeStore';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -28,14 +29,14 @@ export default function HomePage() {
   const focus = upcoming[0];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Greeting row */}
       <div className="flex items-end justify-between gap-4">
         <div>
-          <div className="text-sm text-slate-500 font-medium">
+          <div className="text-sm text-[var(--color-text-tertiary)] font-medium">
             안녕하세요, {mockMe.name.slice(-2) ?? mockMe.name}님 👋
           </div>
-          <div className="text-[22px] font-bold tracking-tight text-slate-900 mt-0.5">
+          <div className="text-[22px] font-bold tracking-tight text-[var(--color-text-primary)] mt-0.5">
             오늘도 커리어 한 걸음 나아가볼까요?
           </div>
         </div>
@@ -128,8 +129,8 @@ function PeriodPill({ label, active }: { label: string; active?: boolean }) {
       className={cn(
         'px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors',
         active
-          ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/20'
-          : 'text-slate-600 hover:bg-slate-100',
+          ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/20 dark:bg-indigo-500 dark:shadow-indigo-500/20'
+          : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)]',
       )}
     >
       {label}
@@ -158,15 +159,15 @@ function FocusCard({ focus, onOpen, onAddNew }: FocusCardProps) {
     : null;
 
   return (
-    <div className="relative h-full rounded-2xl overflow-hidden border border-slate-900/5 shadow-[0_1px_0_rgba(15,23,42,0.03),0_12px_32px_-12px_rgba(79,70,229,0.18)]">
+    <div className="relative h-full rounded-2xl overflow-hidden border border-slate-900/5 dark:border-white/5 shadow-[0_1px_0_rgba(15,23,42,0.03),0_12px_32px_-12px_rgba(79,70,229,0.18)] dark:shadow-[0_1px_0_rgba(255,255,255,0.04),0_20px_40px_-20px_rgba(99,102,241,0.45)]">
       {/* BG */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a1a] via-[#1a1038] to-[#2a0f3a]" />
       <div
         aria-hidden
-        className="absolute inset-0 opacity-30"
+        className="absolute inset-0 opacity-40"
         style={{
           backgroundImage:
-            'radial-gradient(circle at 100% 0%, rgba(99,102,241,0.45), transparent 50%), radial-gradient(circle at 0% 100%, rgba(217,70,239,0.3), transparent 50%)',
+            'radial-gradient(circle at 100% 0%, rgba(99,102,241,0.55), transparent 50%), radial-gradient(circle at 0% 100%, rgba(217,70,239,0.35), transparent 50%)',
         }}
       />
       <div
@@ -179,7 +180,7 @@ function FocusCard({ focus, onOpen, onAddNew }: FocusCardProps) {
         }}
       />
 
-      <div className="relative p-6 lg:p-7 text-white h-full flex flex-col">
+      <div className="relative p-7 lg:p-8 text-white h-full flex flex-col">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 border border-white/15 text-[10.5px] tracking-wide text-white/85 backdrop-blur">
             <IconFire className="w-3.5 h-3.5 text-orange-300" />
@@ -274,24 +275,27 @@ function PipelineFunnel({ data }: { data: typeof mockDashboard.pipeline }) {
     <div className="card p-5 h-full">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wide">
+          <div className="text-[12px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
             Pipeline
           </div>
-          <div className="text-[15px] font-bold text-slate-900 mt-0.5">
+          <div className="text-[15px] font-bold text-[var(--color-text-primary)] mt-0.5">
             파이프라인 퍼널
           </div>
         </div>
-        <IconSparkles className="w-4 h-4 text-indigo-500" />
+        <IconSparkles className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
       </div>
       <div className="space-y-2">
         {data.map((stage) => {
           const pct = (stage.count / max) * 100;
           return (
             <div key={stage.label} className="flex items-center gap-3">
-              <div className="w-[72px] shrink-0 text-[11.5px] font-medium text-slate-600 text-right">
+              <div className="w-[72px] shrink-0 text-[11.5px] font-medium text-[var(--color-text-secondary)] text-right">
                 {stage.label}
               </div>
-              <div className="flex-1 relative h-7 rounded-md bg-slate-100 overflow-hidden">
+              <div
+                className="flex-1 relative h-7 rounded-md overflow-hidden"
+                style={{ background: 'var(--color-bg-muted)' }}
+              >
                 <div
                   className="h-full rounded-md transition-all"
                   style={{
@@ -340,26 +344,28 @@ function KpiCard({
     <div className="card card-hover p-5 relative overflow-hidden">
       <div
         className={cn(
-          'absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-20 bg-gradient-to-br',
+          'absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-20 dark:opacity-30 bg-gradient-to-br',
           accentMap[accent],
         )}
       />
       <div className="relative">
-        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]">
           {label}
         </div>
         <div className="mt-2 flex items-baseline gap-2">
-          <div className="text-[28px] font-extrabold tracking-tight text-slate-900">
+          <div className="text-[28px] font-extrabold tracking-tight text-[var(--color-text-primary)]">
             {value}
           </div>
           {delta && (
-            <div className="text-[11.5px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+            <div className="text-[11.5px] font-semibold text-emerald-600 bg-emerald-50 dark:text-emerald-300 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded">
               {delta}
             </div>
           )}
         </div>
         {hint && (
-          <div className="text-[11.5px] text-slate-500 mt-1.5">{hint}</div>
+          <div className="text-[11.5px] text-[var(--color-text-tertiary)] mt-1.5">
+            {hint}
+          </div>
         )}
       </div>
     </div>
@@ -380,10 +386,10 @@ function PassRatesBoard({ data }: { data: typeof mockDashboard.passRates }) {
     <div className="card p-5 h-full">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wide">
+          <div className="text-[12px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
             Success Rate
           </div>
-          <div className="text-[15px] font-bold text-slate-900 mt-0.5">
+          <div className="text-[15px] font-bold text-[var(--color-text-primary)] mt-0.5">
             단계별 합격률
           </div>
         </div>
@@ -394,10 +400,10 @@ function PassRatesBoard({ data }: { data: typeof mockDashboard.passRates }) {
           return (
             <div key={s.key} className="text-center">
               <RingChart value={stage.rate} color={s.color} />
-              <div className="text-[12px] font-semibold text-slate-700 mt-2">
+              <div className="text-[12px] font-semibold text-[var(--color-text-secondary)] mt-2">
                 {s.label}
               </div>
-              <div className="text-[10.5px] text-slate-500 mt-0.5">
+              <div className="text-[10.5px] text-[var(--color-text-tertiary)] mt-0.5">
                 {stage.passed}/{stage.total}
               </div>
             </div>
@@ -419,7 +425,7 @@ function RingChart({ value, color }: { value: number; color: string }) {
           cx={36}
           cy={36}
           r={radius}
-          stroke="#f1f5f9"
+          stroke="var(--color-bg-muted)"
           strokeWidth={6}
           fill="none"
         />
@@ -437,7 +443,9 @@ function RingChart({ value, color }: { value: number; color: string }) {
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-[13px] font-bold text-slate-900">{value}%</span>
+        <span className="text-[13px] font-bold text-[var(--color-text-primary)]">
+          {value}%
+        </span>
       </div>
     </div>
   );
@@ -455,43 +463,46 @@ function MasterResumeCard() {
       className="card card-hover p-5 h-full w-full text-left group"
     >
       <div className="flex items-center justify-between mb-3">
-        <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wide">
+        <div className="text-[12px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
           Master Resume
         </div>
-        <div className="pill bg-indigo-50 text-indigo-700">
-          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+        <div className="pill bg-indigo-50 text-indigo-700 dark:bg-indigo-500/[0.12] dark:text-indigo-300">
+          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400" />
           ACTIVE
         </div>
       </div>
-      <div className="text-[15px] font-bold text-slate-900 leading-snug">
+      <div className="text-[15px] font-bold text-[var(--color-text-primary)] leading-snug">
         마스터 이력서
       </div>
-      <div className="text-[12px] text-slate-500 mt-1">
+      <div className="text-[12px] text-[var(--color-text-tertiary)] mt-1">
         마지막 수정 4월 12일
       </div>
 
       {/* Progress */}
       <div className="mt-5">
         <div className="flex items-baseline justify-between">
-          <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
+          <div className="text-[11px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
             완성도
           </div>
-          <div className="text-[22px] font-extrabold text-slate-900 tracking-tight">
+          <div className="text-[22px] font-extrabold text-[var(--color-text-primary)] tracking-tight">
             {completion}
-            <span className="text-[12px] text-slate-400 font-semibold ml-0.5">
+            <span className="text-[12px] text-[var(--color-text-tertiary)] font-semibold ml-0.5">
               %
             </span>
           </div>
         </div>
-        <div className="mt-1.5 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+        <div
+          className="mt-1.5 h-1.5 rounded-full overflow-hidden"
+          style={{ background: 'var(--color-bg-muted)' }}
+        >
           <div
             className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500"
             style={{ width: `${completion}%` }}
           />
         </div>
-        <div className="flex items-center justify-between text-[11px] text-slate-500 mt-2.5">
+        <div className="flex items-center justify-between text-[11px] text-[var(--color-text-tertiary)] mt-2.5">
           <span>섹션 7/8 완성</span>
-          <span className="inline-flex items-center gap-1 text-indigo-600 font-semibold group-hover:gap-1.5 transition-all">
+          <span className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-300 font-semibold group-hover:gap-1.5 transition-all">
             편집하기
             <IconArrowUpRight className="w-3 h-3" />
           </span>
@@ -508,6 +519,8 @@ function ActivityHeatmap({
 }: {
   data: { date: string; count: number }[];
 }) {
+  const theme = useThemeStore((s) => s.theme);
+
   const weeks: { date: string; count: number }[][] = [];
   let currentWeek: { date: string; count: number }[] = [];
   data.forEach((d, i) => {
@@ -519,6 +532,13 @@ function ActivityHeatmap({
   });
 
   const color = (count: number) => {
+    if (theme === 'dark') {
+      if (count === 0) return '#1a1f2d';
+      if (count === 1) return '#312e81';
+      if (count === 2) return '#4f46e5';
+      if (count === 3) return '#818cf8';
+      return '#a5b4fc';
+    }
     if (count === 0) return '#f1f5f9';
     if (count === 1) return '#c7d2fe';
     if (count === 2) return '#818cf8';
@@ -533,10 +553,10 @@ function ActivityHeatmap({
     <div className="card p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wide">
+          <div className="text-[12px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
             Activity
           </div>
-          <div className="text-[15px] font-bold text-slate-900 mt-0.5">
+          <div className="text-[15px] font-bold text-[var(--color-text-primary)] mt-0.5">
             최근 90일 활동
           </div>
         </div>
@@ -544,15 +564,19 @@ function ActivityHeatmap({
           <Stat label="총 활동" value={`${total}회`} />
           <Stat label="연속" value={`${streak}일`} />
           <div className="hidden md:flex items-center gap-1.5">
-            <span className="text-[10.5px] text-slate-400">적음</span>
+            <span className="text-[10.5px] text-[var(--color-text-tertiary)]">
+              적음
+            </span>
             {[0, 1, 2, 3, 4].map((lv) => (
               <div
                 key={lv}
-                className="w-3 h-3 rounded-sm"
+                className="w-[14px] h-[14px] rounded-sm"
                 style={{ backgroundColor: color(lv) }}
               />
             ))}
-            <span className="text-[10.5px] text-slate-400">많음</span>
+            <span className="text-[10.5px] text-[var(--color-text-tertiary)]">
+              많음
+            </span>
           </div>
         </div>
       </div>
@@ -564,7 +588,7 @@ function ActivityHeatmap({
               <div
                 key={d.date}
                 title={`${d.date} · ${d.count}회`}
-                className="w-3 h-3 rounded-sm"
+                className="w-[14px] h-[14px] rounded-sm"
                 style={{ backgroundColor: color(d.count) }}
               />
             ))}
@@ -578,10 +602,12 @@ function ActivityHeatmap({
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="text-right">
-      <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
+      <div className="text-[10px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
         {label}
       </div>
-      <div className="text-[14px] font-bold text-slate-900 mt-0.5">{value}</div>
+      <div className="text-[14px] font-bold text-[var(--color-text-primary)] mt-0.5">
+        {value}
+      </div>
     </div>
   );
 }
@@ -608,17 +634,17 @@ function UpcomingList({
     <div className="card p-5 h-full">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wide">
+          <div className="text-[12px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
             Upcoming
           </div>
-          <div className="text-[15px] font-bold text-slate-900 mt-0.5">
+          <div className="text-[15px] font-bold text-[var(--color-text-primary)] mt-0.5">
             다가오는 마감
           </div>
         </div>
-        <IconCalendar className="w-4 h-4 text-slate-400" />
+        <IconCalendar className="w-4 h-4 text-[var(--color-text-tertiary)]" />
       </div>
       {items.length === 0 ? (
-        <div className="py-10 text-center text-[13px] text-slate-500">
+        <div className="py-10 text-center text-[13px] text-[var(--color-text-tertiary)]">
           다가오는 마감이 없어요
         </div>
       ) : (
@@ -637,7 +663,7 @@ function UpcomingList({
                 key={item.id}
                 type="button"
                 onClick={() => onOpen(item.id)}
-                className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors text-left group"
+                className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-[var(--color-bg-muted)] transition-colors text-left group"
               >
                 <div
                   className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white shrink-0"
@@ -646,10 +672,10 @@ function UpcomingList({
                   {item.company[0]}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[13px] font-semibold text-slate-900 truncate">
+                  <div className="text-[13px] font-semibold text-[var(--color-text-primary)] truncate">
                     {item.company}
                   </div>
-                  <div className="text-[11.5px] text-slate-500 truncate">
+                  <div className="text-[11.5px] text-[var(--color-text-tertiary)] truncate">
                     {item.position}
                   </div>
                 </div>
@@ -658,15 +684,15 @@ function UpcomingList({
                     className={cn(
                       'text-[12px] font-bold',
                       daysLeft <= 2
-                        ? 'text-rose-600'
+                        ? 'text-rose-600 dark:text-rose-400'
                         : daysLeft <= 5
-                          ? 'text-orange-600'
-                          : 'text-slate-700',
+                          ? 'text-orange-600 dark:text-orange-400'
+                          : 'text-[var(--color-text-secondary)]',
                     )}
                   >
                     D-{daysLeft}
                   </div>
-                  <div className="text-[10.5px] text-slate-400">
+                  <div className="text-[10.5px] text-[var(--color-text-tertiary)]">
                     {item.deadline?.slice(5).replace('-', '.')}
                   </div>
                 </div>
@@ -687,24 +713,34 @@ function RecentActivityList() {
     <div className="card p-5 h-full">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wide">
+          <div className="text-[12px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
             Recent
           </div>
-          <div className="text-[15px] font-bold text-slate-900 mt-0.5">
+          <div className="text-[15px] font-bold text-[var(--color-text-primary)] mt-0.5">
             최근 활동
           </div>
         </div>
-        <IconClock className="w-4 h-4 text-slate-400" />
+        <IconClock className="w-4 h-4 text-[var(--color-text-tertiary)]" />
       </div>
-      <ol className="relative border-l border-slate-200 ml-2 space-y-4 pl-5">
+      <ol
+        className="relative ml-2 space-y-4 pl-5"
+        style={{ borderLeft: '1px solid var(--color-border-default)' }}
+      >
         {items.map((item) => (
           <li key={item.id} className="relative">
-            <span className="absolute -left-[26.5px] top-1 w-3 h-3 rounded-full bg-white ring-4 ring-indigo-100 shadow-[0_0_0_1px_rgb(99_102_241_/_0.4)]" />
-            <div className="text-[13px] font-semibold text-slate-900">
+            <span
+              className="absolute -left-[26.5px] top-1 w-3 h-3 rounded-full"
+              style={{
+                background: 'var(--color-bg-surface)',
+                boxShadow:
+                  '0 0 0 4px var(--color-bg-muted), 0 0 0 5px rgba(99,102,241,0.4)',
+              }}
+            />
+            <div className="text-[13px] font-semibold text-[var(--color-text-primary)]">
               {item.company ? `${item.company} · ` : ''}
               {item.text}
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
+            <div className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5">
               {item.at.replace(/-/g, '.')}
             </div>
           </li>

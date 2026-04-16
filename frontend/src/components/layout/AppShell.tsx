@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
+import { useThemeStore } from '../../store/themeStore';
 import { mockMe } from '../../mocks/data';
 import {
   IconDashboard,
@@ -11,6 +12,8 @@ import {
   IconSearch,
   IconBell,
   IconPlus,
+  IconSun,
+  IconMoon,
 } from '../icons/Icons';
 import { cn } from '../../lib/cn';
 
@@ -41,6 +44,8 @@ export default function AppShell() {
   const clearToken = useAuthStore((s) => s.clearToken);
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useThemeStore((s) => s.theme);
+  const toggleTheme = useThemeStore((s) => s.toggle);
 
   // Mock data fallback: when no real API, we just show a sample user.
   const me = mockMe;
@@ -56,20 +61,35 @@ export default function AppShell() {
   const isImmersive = /^\/resumes\/\d+/.test(location.pathname);
 
   return (
-    <div className="min-h-screen bg-slate-50/70 text-slate-900">
+    <div
+      className="min-h-screen"
+      style={{
+        background: 'var(--color-bg-base)',
+        color: 'var(--color-text-primary)',
+      }}
+    >
       {/* ---------- Sidebar ---------- */}
-      <aside className="fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200/80 flex flex-col z-30">
-        <div className="h-16 flex items-center px-6 gap-2.5 border-b border-slate-200/80">
+      <aside
+        className="fixed inset-y-0 left-0 w-64 flex flex-col z-30"
+        style={{
+          background: 'var(--color-bg-surface)',
+          borderRight: '1px solid var(--color-border-subtle)',
+        }}
+      >
+        <div
+          className="h-16 flex items-center px-6 gap-2.5"
+          style={{ borderBottom: '1px solid var(--color-border-subtle)' }}
+        >
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-600/25">
             <span className="text-white text-sm font-extrabold tracking-tight">
               R.
             </span>
           </div>
           <div className="leading-tight">
-            <div className="text-[15px] font-bold tracking-tight text-slate-900">
+            <div className="text-[15px] font-bold tracking-tight text-[var(--color-text-primary)]">
               Resume Manage
             </div>
-            <div className="text-[10.5px] text-slate-500 font-medium tracking-wide uppercase">
+            <div className="text-[10.5px] text-[var(--color-text-tertiary)] font-medium tracking-wide uppercase">
               Career workspace
             </div>
           </div>
@@ -93,7 +113,7 @@ export default function AppShell() {
         </div>
 
         <nav className="flex-1 px-3 pt-5 pb-4 space-y-0.5">
-          <div className="px-3 pb-2 text-[10px] font-semibold tracking-[0.14em] uppercase text-slate-400">
+          <div className="px-3 pb-2 text-[10px] font-semibold tracking-[0.14em] uppercase text-[var(--color-text-tertiary)]">
             Workspace
           </div>
           {navItems.map((item) => {
@@ -107,8 +127,8 @@ export default function AppShell() {
                   cn(
                     'flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all',
                     isActive
-                      ? 'bg-indigo-50 text-indigo-700 shadow-[inset_0_0_0_1px_rgba(99,102,241,0.15)]'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                      ? 'bg-indigo-50 text-indigo-700 shadow-[inset_0_0_0_1px_rgba(99,102,241,0.15)] dark:bg-indigo-500/[0.12] dark:text-indigo-300 dark:shadow-[inset_0_0_0_1px_rgba(129,140,248,0.2)]'
+                      : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)]',
                   )
                 }
               >
@@ -117,7 +137,9 @@ export default function AppShell() {
                     <Icon
                       className={cn(
                         'w-[18px] h-[18px] shrink-0',
-                        isActive ? 'text-indigo-600' : 'text-slate-400',
+                        isActive
+                          ? 'text-indigo-600 dark:text-indigo-300'
+                          : 'text-[var(--color-text-tertiary)]',
                       )}
                     />
                     <span>{item.label}</span>
@@ -127,26 +149,29 @@ export default function AppShell() {
             );
           })}
 
-          <div className="px-3 pt-6 pb-2 text-[10px] font-semibold tracking-[0.14em] uppercase text-slate-400">
+          <div className="px-3 pt-6 pb-2 text-[10px] font-semibold tracking-[0.14em] uppercase text-[var(--color-text-tertiary)]">
             Account
           </div>
           <button
             type="button"
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)] transition-all"
           >
-            <IconSettings className="w-[18px] h-[18px] shrink-0 text-slate-400" />
+            <IconSettings className="w-[18px] h-[18px] shrink-0 text-[var(--color-text-tertiary)]" />
             <span>설정</span>
           </button>
         </nav>
 
         {/* User card */}
-        <div className="border-t border-slate-200/80 p-3">
-          <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
+        <div
+          className="p-3"
+          style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+        >
+          <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[var(--color-bg-muted)] transition-colors">
             {me.profileImageUrl ? (
               <img
                 src={me.profileImageUrl}
                 alt={me.name}
-                className="w-9 h-9 rounded-full object-cover ring-1 ring-slate-200"
+                className="w-9 h-9 rounded-full object-cover ring-1 ring-[var(--color-border-subtle)]"
               />
             ) : (
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center text-sm font-bold shadow-sm shadow-indigo-600/20">
@@ -154,16 +179,18 @@ export default function AppShell() {
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="text-[13px] font-semibold text-slate-900 truncate">
+              <p className="text-[13px] font-semibold text-[var(--color-text-primary)] truncate">
                 {me.name}
               </p>
-              <p className="text-[11px] text-slate-500 truncate">{me.email}</p>
+              <p className="text-[11px] text-[var(--color-text-tertiary)] truncate">
+                {me.email}
+              </p>
             </div>
             <button
               type="button"
               onClick={handleLogout}
               title="로그아웃"
-              className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 flex items-center justify-center transition-colors"
+              className="w-7 h-7 rounded-lg text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
             >
               <IconLogout className="w-4 h-4" />
             </button>
@@ -174,35 +201,70 @@ export default function AppShell() {
       {/* ---------- Main ---------- */}
       <main className="pl-64 min-h-screen flex flex-col">
         {/* Top bar */}
-        <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg border-b border-slate-200/70">
+        <header
+          className="sticky top-0 z-20 backdrop-blur-lg"
+          style={{
+            background: 'color-mix(in srgb, var(--color-bg-surface) 80%, transparent)',
+            borderBottom: '1px solid var(--color-border-subtle)',
+          }}
+        >
           <div className="flex items-center justify-between h-16 px-8">
             <div className="min-w-0">
-              <h1 className="text-[18px] font-bold tracking-tight text-slate-900 truncate">
+              <h1 className="text-[18px] font-bold tracking-tight text-[var(--color-text-primary)] truncate">
                 {page.title}
               </h1>
-              <p className="text-[12px] text-slate-500 mt-0.5 truncate">
+              <p className="text-[12px] text-[var(--color-text-tertiary)] mt-0.5 truncate">
                 {page.subtitle}
               </p>
             </div>
 
             <div className="flex items-center gap-2">
               <div className="relative w-72">
-                <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-tertiary)]" />
                 <input
                   type="text"
                   placeholder="회사, 포지션, 태그 검색…"
-                  className="w-full pl-9 pr-14 py-2 text-[13px] bg-slate-100/80 border border-transparent hover:bg-slate-100 focus:bg-white focus:border-slate-200 focus:ring-2 focus:ring-indigo-500/30 rounded-lg transition-all placeholder:text-slate-400 focus:outline-none"
+                  className="w-full pl-9 pr-14 py-2 text-[13px] rounded-lg transition-all placeholder:text-[var(--color-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                  style={{
+                    background: 'var(--color-bg-muted)',
+                    color: 'var(--color-text-primary)',
+                    border: '1px solid transparent',
+                  }}
                 />
-                <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-mono text-slate-400 bg-white border border-slate-200 rounded px-1.5 py-0.5">
+                <kbd
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-mono text-[var(--color-text-tertiary)] rounded px-1.5 py-0.5"
+                  style={{
+                    background: 'var(--color-bg-surface)',
+                    border: '1px solid var(--color-border-subtle)',
+                  }}
+                >
                   ⌘K
                 </kbd>
               </div>
+
+              {/* Theme toggle */}
               <button
                 type="button"
-                className="relative w-10 h-10 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 flex items-center justify-center transition-colors"
+                onClick={toggleTheme}
+                title={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
+                className="relative w-10 h-10 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
+              >
+                {theme === 'dark' ? (
+                  <IconSun className="w-[18px] h-[18px]" />
+                ) : (
+                  <IconMoon className="w-[18px] h-[18px]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                className="relative w-10 h-10 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
               >
                 <IconBell className="w-[18px] h-[18px]" />
-                <span className="absolute top-2 right-2.5 w-1.5 h-1.5 rounded-full bg-rose-500 ring-2 ring-white" />
+                <span
+                  className="absolute top-2 right-2.5 w-1.5 h-1.5 rounded-full bg-rose-500"
+                  style={{ boxShadow: '0 0 0 2px var(--color-bg-surface)' }}
+                />
               </button>
             </div>
           </div>
