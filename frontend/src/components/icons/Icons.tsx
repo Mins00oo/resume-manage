@@ -428,3 +428,67 @@ export const IconMoon = ({ className, strokeWidth = 1.8 }: IconProps) => (
     <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
   </svg>
 );
+
+export const IconChevronUp = ({ className, strokeWidth = 2 }: IconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className ?? base()}
+    aria-hidden
+  >
+    <path d="m6 15 6-6 6 6" />
+  </svg>
+);
+
+export const IconChevronDown = ({ className, strokeWidth = 2 }: IconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className ?? base()}
+    aria-hidden
+  >
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
+export const IconX = ({ className, strokeWidth = 2 }: IconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className ?? base()}
+    aria-hidden
+  >
+    <path d="M18 6 6 18M6 6l12 12" />
+  </svg>
+);
+
+export const IconSort = ({ className, strokeWidth = 1.8 }: IconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className ?? base()}
+    aria-hidden
+  >
+    <path d="M7 4v16m0 0-3-3m3 3 3-3M17 20V4m0 0-3 3m3-3 3 3" />
+  </svg>
+);
