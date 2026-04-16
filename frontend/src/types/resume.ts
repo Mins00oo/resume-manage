@@ -162,6 +162,7 @@ export type ResumeBasicInfoRequest = {
   militaryStatus?: MilitaryStatus | null;
   disabilityStatus?: boolean;
   veteranStatus?: boolean;
+  profileImageFileId?: number | null;
 };
 
 export type ResumeEducationRequest = {
