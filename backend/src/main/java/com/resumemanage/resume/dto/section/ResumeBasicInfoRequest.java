@@ -18,6 +18,7 @@ public record ResumeBasicInfoRequest(
         @Size(max = 500) String shortIntro,
         MilitaryStatus militaryStatus,
         boolean disabilityStatus,
-        boolean veteranStatus
+        boolean veteranStatus,
+        Long profileImageFileId
 ) {
 }

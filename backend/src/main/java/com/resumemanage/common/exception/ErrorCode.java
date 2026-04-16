@@ -25,6 +25,9 @@ public enum ErrorCode {
     CAREER_NOT_FOUND("RESUME_004", HttpStatus.NOT_FOUND, "경력 항목을 찾을 수 없습니다."),
     COVER_LETTER_NOT_FOUND("RESUME_005", HttpStatus.NOT_FOUND, "자기소개서를 찾을 수 없습니다."),
 
+    // File
+    FILE_NOT_FOUND("FILE_001", HttpStatus.NOT_FOUND, "파일을 찾을 수 없습니다."),
+
     // User
     USER_NOT_FOUND("USER_001", HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.");
 
