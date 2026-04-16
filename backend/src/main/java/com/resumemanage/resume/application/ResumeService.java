@@ -3,12 +3,12 @@ package com.resumemanage.resume.application;
 import com.resumemanage.common.exception.BusinessException;
 import com.resumemanage.common.exception.ErrorCode;
 import com.resumemanage.common.security.CurrentUser;
-import com.resumemanage.resume.domain.Resume;
+import com.resumemanage.resume.domain.*;
 import com.resumemanage.resume.dto.ResumeCreateRequest;
 import com.resumemanage.resume.dto.ResumeDetailResponse;
 import com.resumemanage.resume.dto.ResumeSummaryResponse;
 import com.resumemanage.resume.dto.ResumeUpdateRequest;
-import com.resumemanage.resume.repository.ResumeRepository;
+import com.resumemanage.resume.repository.*;
 import com.resumemanage.user.domain.User;
 import com.resumemanage.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +25,19 @@ public class ResumeService {
 
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
+    private final ResumeDetailAssembler detailAssembler;
+
+    // Section repositories for deep copy
+    private final ResumeBasicInfoRepository basicInfoRepository;
+    private final ResumeEducationRepository educationRepository;
+    private final ResumeCareerRepository careerRepository;
+    private final ResumeCareerProjectRepository careerProjectRepository;
+    private final ResumeLanguageRepository languageRepository;
+    private final ResumeCertificateRepository certificateRepository;
+    private final ResumeAwardRepository awardRepository;
+    private final ResumeTrainingRepository trainingRepository;
+    private final ResumeCoverLetterRepository coverLetterRepository;
+    private final ResumeCoverLetterSectionRepository coverLetterSectionRepository;
 
     public Long create(CurrentUser me, ResumeCreateRequest req) {
         User user = userRepository.findById(me.userId())
@@ -50,7 +63,7 @@ public class ResumeService {
     @Transactional(readOnly = true)
     public ResumeDetailResponse get(Long resumeId, Long userId) {
         Resume resume = loadOwned(resumeId, userId);
-        return ResumeDetailResponse.from(resume);
+        return detailAssembler.assemble(resume);
     }
 
     public void updateTitle(Long resumeId, Long userId, ResumeUpdateRequest req) {
@@ -66,23 +79,142 @@ public class ResumeService {
     public Long duplicate(Long resumeId, Long userId) {
         Resume original = loadOwned(resumeId, userId);
 
-        // TODO: child entities (basic info, educations, careers, languages,
-        //       certificates, awards, training, cover letter, etc.) are NOT
-        //       copied yet. Implement deep-copy in a follow-up task once child
-        //       section CRUD lands.
-        Resume copy = Resume.builder()
+        final Resume copy = resumeRepository.save(Resume.builder()
                 .user(original.getUser())
                 .title(original.getTitle() + " (복사본)")
-                .build();
+                .build());
 
-        return resumeRepository.save(copy).getId();
+        // Deep copy: BasicInfo
+        basicInfoRepository.findById(resumeId).ifPresent(src -> {
+            ResumeBasicInfo bi = ResumeBasicInfo.builder().resume(copy).build();
+            bi.updateNames(src.getNameKo(), src.getNameEn());
+            bi.updateContact(src.getEmail(), src.getPhone(), src.getAddress());
+            bi.updatePersonal(src.getGender(), src.getBirthDate(), src.getShortIntro());
+            bi.updateMilitaryAndPreferences(src.getMilitaryStatus(),
+                    src.isDisabilityStatus(), src.isVeteranStatus());
+            if (src.getProfileImageFile() != null) {
+                bi.attachProfileImage(src.getProfileImageFile());
+            }
+            basicInfoRepository.save(bi);
+        });
+
+        // Deep copy: Educations
+        for (ResumeEducation src : educationRepository.findAllByResumeIdOrderByOrderIndexAsc(resumeId)) {
+            educationRepository.save(ResumeEducation.builder()
+                    .resume(copy)
+                    .schoolName(src.getSchoolName())
+                    .major(src.getMajor())
+                    .degree(src.getDegree())
+                    .startDate(src.getStartDate())
+                    .endDate(src.getEndDate())
+                    .graduationStatus(src.getGraduationStatus())
+                    .gpa(src.getGpa())
+                    .gpaMax(src.getGpaMax())
+                    .orderIndex(src.getOrderIndex())
+                    .build());
+        }
+
+        // Deep copy: Careers + CareerProjects
+        for (ResumeCareer srcCareer : careerRepository.findAllByResumeIdOrderByOrderIndexAsc(resumeId)) {
+            ResumeCareer newCareer = careerRepository.save(ResumeCareer.builder()
+                    .resume(copy)
+                    .companyName(srcCareer.getCompanyName())
+                    .position(srcCareer.getPosition())
+                    .department(srcCareer.getDepartment())
+                    .startDate(srcCareer.getStartDate())
+                    .endDate(srcCareer.getEndDate())
+                    .isCurrent(srcCareer.isCurrent())
+                    .responsibilities(srcCareer.getResponsibilities())
+                    .orderIndex(srcCareer.getOrderIndex())
+                    .build());
+
+            for (ResumeCareerProject srcProj : careerProjectRepository
+                    .findAllByCareerIdOrderByOrderIndexAsc(srcCareer.getId())) {
+                careerProjectRepository.save(ResumeCareerProject.builder()
+                        .career(newCareer)
+                        .title(srcProj.getTitle())
+                        .startDate(srcProj.getStartDate())
+                        .endDate(srcProj.getEndDate())
+                        .description(srcProj.getDescription())
+                        .orderIndex(srcProj.getOrderIndex())
+                        .build());
+            }
+        }
+
+        // Deep copy: Languages
+        for (ResumeLanguage src : languageRepository.findAllByResumeIdOrderByOrderIndexAsc(resumeId)) {
+            languageRepository.save(ResumeLanguage.builder()
+                    .resume(copy)
+                    .language(src.getLanguage())
+                    .testName(src.getTestName())
+                    .score(src.getScore())
+                    .acquiredAt(src.getAcquiredAt())
+                    .orderIndex(src.getOrderIndex())
+                    .build());
+        }
+
+        // Deep copy: Certificates
+        for (ResumeCertificate src : certificateRepository.findAllByResumeIdOrderByOrderIndexAsc(resumeId)) {
+            certificateRepository.save(ResumeCertificate.builder()
+                    .resume(copy)
+                    .name(src.getName())
+                    .issuer(src.getIssuer())
+                    .acquiredAt(src.getAcquiredAt())
+                    .orderIndex(src.getOrderIndex())
+                    .build());
+        }
+
+        // Deep copy: Awards
+        for (ResumeAward src : awardRepository.findAllByResumeIdOrderByOrderIndexAsc(resumeId)) {
+            awardRepository.save(ResumeAward.builder()
+                    .resume(copy)
+                    .title(src.getTitle())
+                    .issuer(src.getIssuer())
+                    .awardedAt(src.getAwardedAt())
+                    .description(src.getDescription())
+                    .orderIndex(src.getOrderIndex())
+                    .build());
+        }
+
+        // Deep copy: Trainings
+        for (ResumeTraining src : trainingRepository.findAllByResumeIdOrderByOrderIndexAsc(resumeId)) {
+            trainingRepository.save(ResumeTraining.builder()
+                    .resume(copy)
+                    .name(src.getName())
+                    .institution(src.getInstitution())
+                    .startDate(src.getStartDate())
+                    .endDate(src.getEndDate())
+                    .description(src.getDescription())
+                    .orderIndex(src.getOrderIndex())
+                    .build());
+        }
+
+        // Deep copy: CoverLetter + CoverLetterSections
+        coverLetterRepository.findById(resumeId).ifPresent(srcCl -> {
+            ResumeCoverLetter newCl = coverLetterRepository.save(ResumeCoverLetter.builder()
+                    .resume(copy)
+                    .type(srcCl.getType())
+                    .build());
+            newCl.updateFreeText(srcCl.getFreeText());
+
+            for (ResumeCoverLetterSection srcSec : coverLetterSectionRepository
+                    .findAllByCoverLetterResumeIdOrderByOrderIndexAsc(resumeId)) {
+                coverLetterSectionRepository.save(ResumeCoverLetterSection.builder()
+                        .coverLetter(newCl)
+                        .question(srcSec.getQuestion())
+                        .answer(srcSec.getAnswer())
+                        .charLimit(srcSec.getCharLimit())
+                        .orderIndex(srcSec.getOrderIndex())
+                        .build());
+            }
+        });
+
+        return copy.getId();
     }
 
     public void setAsMaster(Long resumeId, Long userId) {
         Resume target = loadOwned(resumeId, userId);
 
-        // Enforce only-one-master at the application level (MySQL doesn't
-        // support partial unique indexes).
         Optional<Resume> currentMaster =
                 resumeRepository.findByUserIdAndIsMasterTrueAndDeletedAtIsNull(userId);
         currentMaster.ifPresent(existing -> {

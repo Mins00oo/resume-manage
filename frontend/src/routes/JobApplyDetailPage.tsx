@@ -1,480 +1,500 @@
-import { useEffect, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { jobApplyApi } from '../lib/api/jobApply';
-import type {
-  EmploymentType,
-  JobApplyCreateRequest,
-  JobApplyDetail,
-  JobApplyStatus,
-} from '../types/jobApply';
 import {
-  ALL_STATUSES,
-  employmentLabel,
-  isTerminal,
+  stageMeta,
+  toStage,
+  dDayLabel,
   statusLabel,
-} from '../lib/statusLabel';
-import StatusBadge from '../components/jobapply/StatusBadge';
-import { formatDate, formatDateTime } from '../lib/formatDate';
+  type Stage,
+} from '../components/applies/applyUi';
+import {
+  IconChevronLeft,
+  IconPencil,
+  IconTrash,
+  IconArrowUpRight,
+  IconClock,
+  IconSparkles,
+} from '../components/icons/Icons';
+import { cn } from '../lib/cn';
+import { ALL_STATUSES } from '../lib/statusLabel';
+import { statusLabel as getStatusLabel } from '../lib/statusLabel';
+import { employmentLabel } from '../lib/statusLabel';
 
-const EMPLOYMENT_OPTIONS: { value: EmploymentType; label: string }[] = [
-  { value: 'NEW', label: '신입' },
-  { value: 'EXPERIENCED', label: '경력' },
-  { value: 'INTERN', label: '인턴' },
-  { value: 'CONTRACT', label: '계약직' },
+const PIPELINE: { key: Stage; label: string }[] = [
+  { key: 'draft', label: '작성' },
+  { key: 'submitted', label: '지원' },
+  { key: 'document', label: '서류' },
+  { key: 'coding', label: '코딩' },
+  { key: 'assignment', label: '과제' },
+  { key: 'interview', label: '면접' },
+  { key: 'offer', label: '최종' },
 ];
 
-type FormState = {
-  company: string;
-  position: string;
-  jobPostingUrl: string;
-  employmentType: EmploymentType | '';
-  channel: string;
-  deadline: string;
-  memo: string;
-};
-
-const toFormState = (detail: JobApplyDetail): FormState => ({
-  company: detail.company,
-  position: detail.position ?? '',
-  jobPostingUrl: detail.jobPostingUrl ?? '',
-  employmentType: detail.employmentType ?? '',
-  channel: detail.channel ?? '',
-  deadline: detail.deadline ?? '',
-  memo: detail.memo ?? '',
-});
+/** Generate a deterministic color from a company name */
+function companyColor(name: string): string {
+  const PALETTE = [
+    '#3182F6', '#FEE500', '#03C75A', '#00C300', '#FF7E36',
+    '#F7324C', '#4B5AFA', '#0A0A0A', '#2AC1BC', '#35C5F0',
+    '#ED1C24', '#742DDD', '#FF6B00', '#1F8CE6', '#5F0080',
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return PALETTE[Math.abs(hash) % PALETTE.length];
+}
 
 export default function JobApplyDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editMemo, setEditMemo] = useState('');
+  const [statusPickerOpen, setStatusPickerOpen] = useState(false);
+
   const numericId = Number(id);
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState<FormState | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['job-apply', numericId],
+  const {
+    data: item,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['jobApply', numericId],
     queryFn: () => jobApplyApi.get(numericId),
-    enabled: Number.isFinite(numericId) && numericId > 0,
-  });
-
-  useEffect(() => {
-    if (data && !form) {
-      setForm(toFormState(data));
-    }
-  }, [data, form]);
-
-  const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ['job-apply', numericId] });
-    queryClient.invalidateQueries({ queryKey: ['job-applies'] });
-    queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-  };
-
-  const updateMutation = useMutation({
-    mutationFn: (body: Partial<JobApplyCreateRequest>) =>
-      jobApplyApi.update(numericId, body),
-    onSuccess: () => {
-      invalidate();
-      setIsEditing(false);
-      setErrorMsg(null);
-    },
-    onError: () => setErrorMsg('저장하지 못했어요. 잠시 후 다시 시도해주세요.'),
+    enabled: !isNaN(numericId),
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => jobApplyApi.delete(numericId),
     onSuccess: () => {
-      invalidate();
+      queryClient.invalidateQueries({ queryKey: ['jobApplies'] });
       navigate('/applies');
     },
-    onError: () => setErrorMsg('삭제하지 못했어요. 잠시 후 다시 시도해주세요.'),
+    onError: (err: Error) => {
+      alert(err.message || '삭제에 실패했습니다.');
+    },
   });
 
   const transitionMutation = useMutation({
-    mutationFn: (to: JobApplyStatus) => jobApplyApi.transition(numericId, to),
+    mutationFn: (to: string) =>
+      jobApplyApi.transition(numericId, to as import('../types/jobApply').JobApplyStatus),
     onSuccess: () => {
-      invalidate();
-      setErrorMsg(null);
+      queryClient.invalidateQueries({ queryKey: ['jobApply', numericId] });
+      queryClient.invalidateQueries({ queryKey: ['jobApplies'] });
+      setStatusPickerOpen(false);
     },
-    onError: () =>
-      setErrorMsg(
-        '상태를 변경할 수 없어요. 현재 단계에서 불가능한 전이일 수 있어요.',
-      ),
+    onError: (err: Error) => {
+      alert(err.message || '상태 변경에 실패했습니다.');
+    },
   });
 
-  if (!Number.isFinite(numericId) || numericId <= 0) {
-    return (
-      <div className="rounded-xl bg-white border border-slate-200 p-10 text-center">
-        <p className="text-sm text-slate-600">잘못된 지원 ID에요.</p>
-        <button
-          type="button"
-          onClick={() => navigate('/applies')}
-          className="mt-4 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg"
-        >
-          목록으로
-        </button>
-      </div>
-    );
-  }
+  const updateMutation = useMutation({
+    mutationFn: (body: Partial<import('../types/jobApply').JobApplyCreateRequest>) =>
+      jobApplyApi.update(numericId, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['jobApply', numericId] });
+      queryClient.invalidateQueries({ queryKey: ['jobApplies'] });
+      setIsEditing(false);
+    },
+    onError: (err: Error) => {
+      alert(err.message || '수정에 실패했습니다.');
+    },
+  });
 
   if (isLoading) {
     return (
-      <div className="rounded-xl bg-white border border-slate-200 p-10 text-center">
-        <p className="text-sm text-slate-500">불러오는 중...</p>
-      </div>
-    );
-  }
-
-  if (isError || !data) {
-    return (
-      <div className="rounded-xl bg-rose-50 border border-rose-200 p-6 flex items-center justify-between">
-        <div>
-          <p className="text-sm font-semibold text-rose-800">
-            지원 내역을 불러오지 못했어요
-          </p>
-          <p className="text-xs text-rose-700 mt-1">
-            잠시 후 다시 시도해주세요.
-          </p>
+      <div className="py-20 flex flex-col items-center text-center">
+        <div className="w-8 h-8 border-3 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+        <div className="text-[13px] text-[var(--color-text-tertiary)] mt-4">
+          지원 정보를 불러오는 중...
         </div>
-        <button
-          type="button"
-          onClick={() => refetch()}
-          className="px-4 py-2 text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 rounded-lg"
-        >
-          다시 시도
-        </button>
       </div>
     );
   }
 
-  const handleSave = () => {
-    if (!form) return;
-    if (!form.company.trim()) {
-      setErrorMsg('회사명은 필수 입력이에요.');
-      return;
-    }
-    const body: Partial<JobApplyCreateRequest> = {
-      company: form.company.trim(),
-      position: form.position.trim() || undefined,
-      jobPostingUrl: form.jobPostingUrl.trim() || undefined,
-      employmentType: form.employmentType || undefined,
-      channel: form.channel.trim() || undefined,
-      deadline: form.deadline || undefined,
-      memo: form.memo.trim() || undefined,
-    };
-    updateMutation.mutate(body);
-  };
-
-  const handleCancelEdit = () => {
-    setForm(toFormState(data));
-    setIsEditing(false);
-    setErrorMsg(null);
-  };
-
-  const terminal = isTerminal(data.currentStatus);
-
-  return (
-    <div className="max-w-3xl space-y-6">
-      <header>
+  if (isError || !item) {
+    return (
+      <div className="card p-10 text-center">
+        <p className="text-sm text-[var(--color-text-secondary)]">
+          {(error as Error)?.message ?? '존재하지 않는 지원이에요.'}
+        </p>
         <button
           type="button"
           onClick={() => navigate('/applies')}
-          className="text-xs text-slate-500 hover:text-slate-900 mb-2"
+          className="mt-4 btn-primary"
         >
-          ← 지원 내역으로
+          지원 목록으로
         </button>
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-slate-900 truncate">
-              {data.company}
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              {data.position ?? '포지션 미지정'}
-            </p>
-          </div>
-          <div className="flex gap-2 shrink-0">
-            {!isEditing ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(true)}
-                  className="px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+      </div>
+    );
+  }
+
+  const dday = dDayLabel(item.deadline);
+  const stage = stageMeta[toStage(item.currentStatus)];
+  const currentStage = toStage(item.currentStatus);
+  const currentStageIdx = PIPELINE.findIndex((p) => p.key === currentStage);
+  const bgColor = companyColor(item.company);
+
+  const handleStartEdit = () => {
+    setEditMemo(item.memo ?? '');
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = () => {
+    updateMutation.mutate({ memo: editMemo });
+  };
+
+  return (
+    <div className="space-y-6">
+      <button
+        type="button"
+        onClick={() => navigate('/applies')}
+        className="inline-flex items-center gap-1 text-[12px] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] font-medium"
+      >
+        <IconChevronLeft className="w-3.5 h-3.5" />
+        지원 목록
+      </button>
+
+      {/* Hero */}
+      <div className="card overflow-hidden">
+        <div
+          className="h-20 relative"
+          style={{
+            background: `linear-gradient(135deg, ${bgColor}bb, ${bgColor}66)`,
+          }}
+        >
+          <div
+            aria-hidden
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+              backgroundSize: '20px 20px',
+            }}
+          />
+        </div>
+        <div className="p-4 md:p-6 pt-0">
+          <div className="flex flex-col md:flex-row md:items-end justify-between -mt-8 gap-4">
+            <div className="flex items-end gap-3 md:gap-4">
+              <div
+                className="rounded-xl flex items-center justify-center text-white font-bold shrink-0 ring-1 ring-black/5 shadow-sm"
+                style={{
+                  width: 56,
+                  height: 56,
+                  backgroundColor: bgColor,
+                  fontSize: 56 * 0.42,
+                }}
+              >
+                {item.company[0]}
+              </div>
+              <div className="pb-1 min-w-0">
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${stage.bg} ${stage.text} ${stage.border}`}
                 >
-                  편집
-                </button>
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: stage.color }}
+                  />
+                  {statusLabel(item.currentStatus)}
+                </span>
+                <div className="text-[20px] md:text-[26px] font-bold tracking-tight text-[var(--color-text-primary)] mt-2 leading-tight truncate">
+                  {item.company}
+                </div>
+                <div className="text-[13px] md:text-[14px] text-[var(--color-text-secondary)] truncate">{item.position}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 pb-1">
+              <button
+                type="button"
+                onClick={() => (isEditing ? handleSaveEdit() : handleStartEdit())}
+                className="btn-outline flex-1 md:flex-none"
+                disabled={updateMutation.isPending}
+              >
+                <IconPencil className="w-4 h-4" />
+                {isEditing ? (updateMutation.isPending ? '저장 중...' : '저장') : '편집'}
+              </button>
+              {isEditing && (
                 <button
                   type="button"
-                  onClick={() => setConfirmDelete(true)}
-                  className="px-3 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                >
-                  삭제
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  className="px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  onClick={() => setIsEditing(false)}
+                  className="btn-ghost flex-1 md:flex-none"
                 >
                   취소
                 </button>
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={updateMutation.isPending}
-                  className="px-3 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 rounded-lg transition-colors"
-                >
-                  {updateMutation.isPending ? '저장 중...' : '저장'}
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <section className="rounded-xl bg-white border border-slate-200 p-5">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-slate-900">진행 상태</h3>
-          <StatusBadge status={data.currentStatus} />
-        </div>
-        {terminal ? (
-          <p className="text-xs text-slate-500">
-            종료된 상태라 더 이상 전이할 수 없어요.
-          </p>
-        ) : (
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-slate-500">다음 상태</label>
-            <select
-              value=""
-              onChange={(e) => {
-                if (e.target.value) {
-                  transitionMutation.mutate(e.target.value as JobApplyStatus);
-                  e.target.value = '';
-                }
-              }}
-              disabled={transitionMutation.isPending}
-              className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
-            >
-              <option value="">상태 변경 선택...</option>
-              {ALL_STATUSES.filter((s) => s !== data.currentStatus).map((s) => (
-                <option key={s} value={s}>
-                  {statusLabel(s)}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-      </section>
-
-      {errorMsg && (
-        <div className="rounded-md bg-rose-50 border border-rose-200 px-3 py-2 text-sm text-rose-700">
-          {errorMsg}
-        </div>
-      )}
-
-      <section className="rounded-xl bg-white border border-slate-200 p-6">
-        <h3 className="text-sm font-semibold text-slate-900 mb-4">기본 정보</h3>
-        {!isEditing ? (
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-            <Info label="회사" value={data.company} />
-            <Info label="포지션" value={data.position} />
-            <Info
-              label="고용 형태"
-              value={employmentLabel(data.employmentType)}
-            />
-            <Info label="경로" value={data.channel} />
-            <Info label="마감일" value={formatDate(data.deadline)} />
-            <Info label="제출일" value={formatDate(data.submittedAt)} />
-            <Info
-              label="채용 공고"
-              value={
-                data.jobPostingUrl ? (
-                  <a
-                    href={data.jobPostingUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-indigo-600 hover:underline break-all"
-                  >
-                    {data.jobPostingUrl}
-                  </a>
-                ) : (
-                  '-'
-                )
-              }
-              wide
-            />
-            <Info
-              label="메모"
-              value={
-                data.memo ? (
-                  <span className="whitespace-pre-wrap">{data.memo}</span>
-                ) : (
-                  '-'
-                )
-              }
-              wide
-            />
-          </dl>
-        ) : (
-          form && (
-            <div className="space-y-4">
-              <FormField label="회사" required>
-                <input
-                  type="text"
-                  value={form.company}
-                  onChange={(e) =>
-                    setForm({ ...form, company: e.target.value })
-                  }
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </FormField>
-              <FormField label="포지션">
-                <input
-                  type="text"
-                  value={form.position}
-                  onChange={(e) =>
-                    setForm({ ...form, position: e.target.value })
-                  }
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </FormField>
-              <FormField label="채용 공고 URL">
-                <input
-                  type="url"
-                  value={form.jobPostingUrl}
-                  onChange={(e) =>
-                    setForm({ ...form, jobPostingUrl: e.target.value })
-                  }
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </FormField>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField label="고용 형태">
-                  <select
-                    value={form.employmentType}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        employmentType: e.target.value as EmploymentType | '',
-                      })
-                    }
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="">선택 안함</option>
-                    {EMPLOYMENT_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
-                <FormField label="경로">
-                  <input
-                    type="text"
-                    value={form.channel}
-                    onChange={(e) =>
-                      setForm({ ...form, channel: e.target.value })
-                    }
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                </FormField>
-              </div>
-              <FormField label="마감일">
-                <input
-                  type="date"
-                  value={form.deadline}
-                  onChange={(e) =>
-                    setForm({ ...form, deadline: e.target.value })
-                  }
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </FormField>
-              <FormField label="메모">
-                <textarea
-                  value={form.memo}
-                  onChange={(e) => setForm({ ...form, memo: e.target.value })}
-                  rows={4}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                />
-              </FormField>
-            </div>
-          )
-        )}
-      </section>
-
-      <section className="rounded-xl bg-white border border-slate-200 p-5 text-xs text-slate-500 flex items-center justify-between">
-        <span>등록 {formatDateTime(data.createdAt)}</span>
-        <span>최종 수정 {formatDateTime(data.updatedAt)}</span>
-      </section>
-
-      {confirmDelete && (
-        <div className="fixed inset-0 bg-slate-900/40 z-30 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl">
-            <h3 className="text-base font-semibold text-slate-900">
-              이 지원을 삭제할까요?
-            </h3>
-            <p className="text-sm text-slate-500 mt-2">
-              삭제하면 목록에서 사라져요. 이 작업은 되돌릴 수 없어요.
-            </p>
-            <div className="flex gap-2 justify-end mt-5">
+              )}
               <button
                 type="button"
-                onClick={() => setConfirmDelete(false)}
-                className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                onClick={() => deleteMutation.mutate()}
+                onClick={() => {
+                  if (window.confirm(`"${item.company}" 지원을 삭제할까요?`)) {
+                    deleteMutation.mutate();
+                  }
+                }}
                 disabled={deleteMutation.isPending}
-                className="px-4 py-2 text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-60 rounded-lg transition-colors"
+                className="btn-ghost text-rose-600 hover:bg-rose-50 flex-1 md:flex-none"
               >
+                <IconTrash className="w-4 h-4" />
                 {deleteMutation.isPending ? '삭제 중...' : '삭제'}
               </button>
             </div>
           </div>
+
+          {/* Meta chips */}
+          <div className="flex items-center gap-2 mt-5 flex-wrap">
+            {dday && (
+              <span
+                className={cn(
+                  'pill',
+                  dday.days <= 3 && dday.days >= 0
+                    ? 'bg-rose-50 text-rose-700'
+                    : 'bg-blue-50 text-blue-700',
+                )}
+              >
+                &#9200; {dday.label} &middot; 마감 {item.deadline?.replace(/-/g, '.')}
+              </span>
+            )}
+          </div>
         </div>
-      )}
+      </div>
+
+      {/* Pipeline tracker */}
+      <div className="card p-4 md:p-5">
+        <div className="text-[12px] font-semibold text-[var(--color-text-secondary)] mb-4">
+          진행 상황
+        </div>
+        <div className="overflow-x-auto -mx-1 px-1 pb-1">
+          <div className="relative flex items-start justify-between min-w-[420px]">
+            <div className="absolute top-4 left-8 right-8 h-0.5 bg-[var(--color-border-subtle)]" />
+            <div
+              className="absolute top-4 left-8 h-0.5 bg-indigo-500 transition-all"
+              style={{
+                width: `calc(${
+                  currentStageIdx < 0
+                    ? 0
+                    : (currentStageIdx / (PIPELINE.length - 1)) * 100
+                }% - ${currentStageIdx < 0 ? 0 : 32}px)`,
+              }}
+            />
+            {PIPELINE.map((p, i) => {
+              const done = i < currentStageIdx;
+              const current = i === currentStageIdx;
+              return (
+                <div
+                  key={p.key}
+                  className="relative z-10 flex flex-col items-center gap-1.5 md:gap-2"
+                >
+                  <div
+                    className={cn(
+                      'w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-[10px] md:text-[11px] font-bold border-2 transition-all',
+                      done
+                        ? 'bg-indigo-500 border-indigo-500 text-white'
+                        : current
+                          ? 'bg-[var(--color-bg-surface)] border-indigo-500 text-indigo-700 ring-4 ring-indigo-100'
+                          : 'bg-[var(--color-bg-surface)] border-[var(--color-border-subtle)] text-[var(--color-text-tertiary)]',
+                    )}
+                  >
+                    {done ? '\u2713' : i + 1}
+                  </div>
+                  <div
+                    className={cn(
+                      'text-[10px] md:text-[11px] font-semibold',
+                      current
+                        ? 'text-indigo-700'
+                        : done
+                          ? 'text-[var(--color-text-primary)]'
+                          : 'text-[var(--color-text-tertiary)]',
+                    )}
+                  >
+                    {p.label}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Body grid */}
+      <div className="grid grid-cols-12 gap-5">
+        <div className="col-span-12 lg:col-span-8 space-y-5">
+          {/* Info card */}
+          <div className="card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-[15px] font-bold text-[var(--color-text-primary)]">기본 정보</div>
+            </div>
+            <dl className="grid grid-cols-2 gap-5 text-[13px]">
+              <Info label="회사" value={item.company} />
+              <Info label="포지션" value={item.position ?? '-'} />
+              <Info label="고용 형태" value={employmentLabel(item.employmentType)} />
+              <Info label="경로" value={item.channel ?? '-'} />
+              <Info
+                label="채용 공고"
+                value={
+                  item.jobPostingUrl ? (
+                    <a
+                      href={item.jobPostingUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-indigo-600 hover:underline inline-flex items-center gap-1 truncate"
+                    >
+                      {item.jobPostingUrl}
+                      <IconArrowUpRight className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    '-'
+                  )
+                }
+                wide
+              />
+            </dl>
+          </div>
+
+          {/* Memo */}
+          <div className="card p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-[15px] font-bold text-[var(--color-text-primary)]">메모</div>
+              <button
+                type="button"
+                onClick={() => alert('AI 요약 기능은 준비 중이에요.')}
+                className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-indigo-600 hover:text-indigo-700"
+              >
+                <IconSparkles className="w-3.5 h-3.5" />
+                AI 요약
+              </button>
+            </div>
+            {isEditing ? (
+              <textarea
+                value={editMemo}
+                onChange={(e) => setEditMemo(e.target.value)}
+                className="w-full min-h-[140px] px-3.5 py-2.5 text-[13px] bg-[var(--color-bg-muted)] border border-[var(--color-border-subtle)] rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 resize-none text-[var(--color-text-primary)]"
+              />
+            ) : (
+              <p className="text-[13px] text-[var(--color-text-primary)] leading-relaxed whitespace-pre-wrap">
+                {item.memo || '메모가 없어요.'}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="col-span-12 lg:col-span-4 space-y-5">
+          {/* Status block */}
+          <div className="card p-5">
+            <div className="text-[12px] font-semibold text-[var(--color-text-secondary)]  mb-3">
+              상태
+            </div>
+            <div
+              className={cn(
+                'rounded-xl border-2 p-4',
+                stage.bg,
+                stage.border,
+              )}
+            >
+              <div className={cn('text-[16px] font-bold', stage.text)}>
+                {stage.label}
+              </div>
+              <div className="text-[11.5px] text-[var(--color-text-secondary)] mt-1">
+                현재 진행 중인 단계
+              </div>
+            </div>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setStatusPickerOpen((v) => !v)}
+                className="btn-outline w-full mt-3"
+                disabled={transitionMutation.isPending}
+              >
+                {transitionMutation.isPending ? '변경 중...' : '상태 변경'}
+              </button>
+              {statusPickerOpen && (
+                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] rounded-xl shadow-lg max-h-64 overflow-y-auto">
+                  {ALL_STATUSES.filter((s) => s !== item.currentStatus).map(
+                    (s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => transitionMutation.mutate(s)}
+                        className="w-full text-left px-4 py-2.5 text-[12.5px] font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] transition-colors"
+                      >
+                        {getStatusLabel(s)}
+                      </button>
+                    ),
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Timestamps */}
+          <div className="card p-5">
+            <div className="text-[12px] font-semibold text-[var(--color-text-secondary)]  mb-3">
+              기록
+            </div>
+            <ol className="space-y-3">
+              <TimestampRow label="생성" value={item.createdAt} />
+              <TimestampRow label="제출" value={item.submittedAt ?? '-'} />
+              <TimestampRow label="최종 수정" value={item.updatedAt} />
+              {item.deadline && (
+                <TimestampRow
+                  label="마감"
+                  value={item.deadline}
+                  emphasize
+                />
+              )}
+            </ol>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
-type InfoProps = {
+function Info({
+  label,
+  value,
+  wide,
+}: {
   label: string;
   value: React.ReactNode;
   wide?: boolean;
-};
-
-function Info({ label, value, wide }: InfoProps) {
+}) {
   return (
-    <div className={wide ? 'sm:col-span-2' : ''}>
-      <dt className="text-xs font-medium text-slate-500 mb-1">{label}</dt>
-      <dd className="text-sm text-slate-900">
-        {value === null || value === undefined || value === '' ? '-' : value}
-      </dd>
+    <div className={wide ? 'col-span-2' : ''}>
+      <dt className="text-[11px] font-semibold  text-[var(--color-text-secondary)] mb-1">
+        {label}
+      </dt>
+      <dd className="text-[var(--color-text-primary)] font-medium truncate">{value}</dd>
     </div>
   );
 }
 
-type FormFieldProps = {
+function TimestampRow({
+  label,
+  value,
+  emphasize,
+}: {
   label: string;
-  required?: boolean;
-  children: React.ReactNode;
-};
-
-function FormField({ label, required, children }: FormFieldProps) {
+  value: string;
+  emphasize?: boolean;
+}) {
   return (
-    <label className="block">
-      <span className="block text-xs font-medium text-slate-600 mb-1.5">
-        {label}
-        {required && <span className="text-rose-500 ml-0.5">*</span>}
-      </span>
-      {children}
-    </label>
+    <li className="flex items-center gap-3">
+      <IconClock
+        className={cn(
+          'w-4 h-4 shrink-0',
+          emphasize ? 'text-rose-500' : 'text-[var(--color-text-tertiary)]',
+        )}
+      />
+      <div className="flex-1 text-[12px] text-[var(--color-text-secondary)]">{label}</div>
+      <div
+        className={cn(
+          'text-[12px] font-semibold',
+          emphasize ? 'text-rose-600' : 'text-[var(--color-text-primary)]',
+        )}
+      >
+        {value === '-' ? '-' : value.replace(/-/g, '.')}
+      </div>
+    </li>
   );
 }
