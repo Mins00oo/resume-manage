@@ -264,7 +264,108 @@ export const mockApplies: Apply[] = [
     location: '서울 / 원격',
     logoColor: '#742DDD',
   },
+  ...generateHistoricalApplies(),
 ];
+
+/**
+ * Historical applies for pagination + year-filter demo.
+ * ~140 records spread across 2024 / 2025 / 2026 (plus ~early 2026).
+ */
+function generateHistoricalApplies(): Apply[] {
+  const pool: Omit<Apply, 'id' | 'submittedAt' | 'createdAt' | 'updatedAt' | 'deadline' | 'currentStatus'>[] = [
+    { company: '토스', position: '프론트엔드 엔지니어', employmentType: 'EXPERIENCED', channel: '원티드', jobPostingUrl: 'https://toss.im/career', memo: '', tags: ['금융', '스타트업'], salary: '6,500만원~', location: '서울 강남', logoColor: '#3182F6' },
+    { company: '카카오', position: '웹 개발자', employmentType: 'EXPERIENCED', channel: '카카오 채용', jobPostingUrl: 'https://careers.kakao.com', memo: '', tags: ['대기업'], salary: '7,000~9,000', location: '판교', logoColor: '#FEE500' },
+    { company: '네이버', position: '프론트엔드 개발자', employmentType: 'EXPERIENCED', channel: '네이버 채용', jobPostingUrl: 'https://recruit.navercorp.com', memo: '', tags: ['대기업', '포털'], salary: '6,000~8,500', location: '분당', logoColor: '#03C75A' },
+    { company: '라인', position: 'Frontend Engineer', employmentType: 'EXPERIENCED', channel: 'LinkedIn', jobPostingUrl: 'https://linecorp.com/career', memo: '', tags: ['글로벌'], salary: '6,500~9,000', location: '판교', logoColor: '#00C300' },
+    { company: '당근', position: 'Frontend Engineer', employmentType: 'EXPERIENCED', channel: '원티드', jobPostingUrl: 'https://team.daangn.com/jobs', memo: '', tags: ['스타트업', '커뮤니티'], salary: '6,500~8,000', location: '서울 서초', logoColor: '#FF7E36' },
+    { company: '쿠팡', position: 'Web Software Engineer', employmentType: 'EXPERIENCED', channel: 'LinkedIn', jobPostingUrl: 'https://coupang.jobs', memo: '', tags: ['대기업', '이커머스'], salary: '9,000~', location: '서울 송파', logoColor: '#F7324C' },
+    { company: '뤼튼', position: '프론트엔드 엔지니어', employmentType: 'EXPERIENCED', channel: '원티드', jobPostingUrl: 'https://wrtn.ai/career', memo: '', tags: ['AI', '스타트업'], salary: '6,000~8,000', location: '서울 강남', logoColor: '#4B5AFA' },
+    { company: '무신사', position: 'Frontend Engineer', employmentType: 'EXPERIENCED', channel: '원티드', jobPostingUrl: 'https://musinsa.career.greetinghr.com', memo: '', tags: ['패션', '이커머스'], location: '서울 성수', logoColor: '#0A0A0A' },
+    { company: '우아한형제들', position: '웹 프론트 개발자', employmentType: 'EXPERIENCED', channel: '원티드', jobPostingUrl: 'https://woowahan.com/recruit', memo: '', tags: ['대기업', '배달'], salary: '7,000~9,500', location: '서울 송파', logoColor: '#2AC1BC' },
+    { company: '오늘의집', position: 'Frontend Engineer', employmentType: 'EXPERIENCED', channel: 'LinkedIn', jobPostingUrl: 'https://bucketplace.com/career', memo: '', tags: ['스타트업', '인테리어'], location: '서울 서초', logoColor: '#35C5F0' },
+    { company: '야놀자', position: '웹 프론트엔드', employmentType: 'EXPERIENCED', channel: '원티드', jobPostingUrl: 'https://yanolja.com/careers', memo: '', tags: ['여행'], salary: '7,000~9,000', location: '서울 강남', logoColor: '#ED1C24' },
+    { company: '센드버드', position: 'Web SDK Engineer', employmentType: 'EXPERIENCED', channel: '리퍼럴', jobPostingUrl: 'https://sendbird.com/careers', memo: '', tags: ['글로벌', 'B2B'], salary: '$80k~$120k', location: '원격', logoColor: '#742DDD' },
+    { company: '직방', position: '프론트엔드 엔지니어', employmentType: 'EXPERIENCED', channel: '사람인', jobPostingUrl: 'https://zigbang.com/career', memo: '', tags: ['부동산'], salary: '6,000~8,000', location: '서울 강남', logoColor: '#FF6B00' },
+    { company: '리디', position: '웹 프론트엔드', employmentType: 'EXPERIENCED', channel: '원티드', jobPostingUrl: 'https://ridi.com/career', memo: '', tags: ['콘텐츠'], salary: '6,000~8,500', location: '서울 강남', logoColor: '#1F8CE6' },
+    { company: '마켓컬리', position: 'Frontend Engineer', employmentType: 'EXPERIENCED', channel: '링크드인', jobPostingUrl: 'https://kurly.com/career', memo: '', tags: ['이커머스'], salary: '6,500~8,500', location: '서울 성수', logoColor: '#5F0080' },
+    { company: '당근', position: 'Web Engineer', employmentType: 'EXPERIENCED', channel: '원티드', jobPostingUrl: 'https://team.daangn.com', memo: '', tags: ['스타트업'], salary: '6,500~8,000', location: '서울 서초', logoColor: '#FF7E36' },
+    { company: '크래프톤', position: '플랫폼 프론트엔드', employmentType: 'EXPERIENCED', channel: '링크드인', jobPostingUrl: 'https://krafton.com/career', memo: '', tags: ['게임'], salary: '7,000~9,500', location: '판교', logoColor: '#FF5722' },
+    { company: '넷마블', position: '웹 개발자', employmentType: 'EXPERIENCED', channel: '사람인', jobPostingUrl: 'https://netmarble.com/career', memo: '', tags: ['게임'], salary: '6,500~8,500', location: '구로', logoColor: '#FF7C2B' },
+    { company: '스포카', position: 'Web Engineer', employmentType: 'EXPERIENCED', channel: '원티드', jobPostingUrl: 'https://spoqa.com/career', memo: '', tags: ['SaaS'], salary: '6,000~7,500', location: '서울 강남', logoColor: '#E53935' },
+    { company: '데브시스터즈', position: 'Frontend Engineer', employmentType: 'EXPERIENCED', channel: '링크드인', jobPostingUrl: 'https://devsisters.com/career', memo: '', tags: ['게임'], salary: '6,000~8,000', location: '서울 강남', logoColor: '#FFB300' },
+  ];
+
+  const statuses: JobApplyStatus[] = [
+    'DRAFT', 'SUBMITTED',
+    'DOCUMENT_PASSED', 'DOCUMENT_FAILED',
+    'CODING_IN_PROGRESS', 'CODING_PASSED', 'CODING_FAILED',
+    'ASSIGNMENT_IN_PROGRESS', 'ASSIGNMENT_PASSED', 'ASSIGNMENT_FAILED',
+    'INTERVIEW_IN_PROGRESS', 'INTERVIEW_PASSED', 'INTERVIEW_FAILED',
+    'FINAL_ACCEPTED', 'FINAL_REJECTED',
+  ];
+
+  // Distribution: 2024=35 · 2025=55 · 2026=50 (historical; doesn't include the 12 active mocks)
+  const distribution: { year: number; count: number }[] = [
+    { year: 2024, count: 35 },
+    { year: 2025, count: 55 },
+    { year: 2026, count: 50 },
+  ];
+
+  const out: Apply[] = [];
+  let id = 1000;
+
+  for (const { year, count } of distribution) {
+    for (let i = 0; i < count; i++) {
+      const base = pool[i % pool.length];
+      // stable pseudo-random via index
+      const month = ((i * 7) % 12); // 0..11
+      const day = 1 + ((i * 13) % 27); // 1..27
+      const submittedDate = new Date(year, month, day);
+      const deadlineDate = new Date(year, month, Math.min(28, day + 7 + (i % 14)));
+      const createdDate = new Date(year, month, Math.max(1, day - 2));
+      const updatedDate = new Date(year, month, Math.min(28, day + 3));
+
+      // Mostly terminal for older years, mixed for recent
+      const statusPool =
+        year === 2024
+          ? statuses.filter((s) =>
+              s.endsWith('_FAILED') || s === 'FINAL_ACCEPTED' || s === 'FINAL_REJECTED',
+            )
+          : year === 2025
+            ? statuses
+            : statuses.slice(0, 13); // 2026: mostly active
+      const currentStatus = statusPool[i % statusPool.length];
+
+      out.push({
+        id: id++,
+        company: base.company,
+        position: base.position,
+        currentStatus,
+        employmentType: base.employmentType,
+        channel: base.channel,
+        deadline: toIsoDate(deadlineDate),
+        submittedAt: currentStatus === 'DRAFT' ? null : toIsoDate(submittedDate),
+        updatedAt: toIsoDate(updatedDate),
+        createdAt: toIsoDate(createdDate),
+        jobPostingUrl: base.jobPostingUrl,
+        memo: base.memo || `${year}년 ${month + 1}월 지원 기록.`,
+        tags: base.tags,
+        salary: base.salary,
+        location: base.location,
+        logoColor: base.logoColor,
+      });
+    }
+  }
+
+  return out;
+}
+
+function toIsoDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 /* ------------------------------------------------------------------ */
 /* 📊  Dashboard aggregates                                            */
