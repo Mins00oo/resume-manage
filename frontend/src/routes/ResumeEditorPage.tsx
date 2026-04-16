@@ -88,6 +88,8 @@ export default function ResumeEditorPage() {
   const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFileId, setPhotoFileId] = useState<number | null>(null);
+  const [addressMain, setAddressMain] = useState('');
+  const [addressDetail, setAddressDetail] = useState('');
   const initialized = useRef(false);
 
   /* Fetch */
@@ -102,6 +104,9 @@ export default function ResumeEditorPage() {
       if (detail.basicInfo?.profileImageFileId) {
         setPhotoFileId(detail.basicInfo.profileImageFileId);
         setPhotoPreview(`/api/files/${detail.basicInfo.profileImageFileId}`);
+      }
+      if (detail.basicInfo?.address) {
+        setAddressMain(detail.basicInfo.address);
       }
     }
   }, [detail]);
@@ -289,8 +294,16 @@ export default function ResumeEditorPage() {
 
             <FormField label="주소" hint="좋은 정보 추천을 위해 도로명(번지)까지만 적어주세요!">
               <AddressSearch
-                value={doc.profile.location}
-                onChange={(addr) => updateProfile('location', addr)}
+                value={addressMain}
+                onChange={(addr) => {
+                  setAddressMain(addr);
+                  updateProfile('location', addressDetail ? `${addr} ${addressDetail}` : addr);
+                }}
+                detailValue={addressDetail}
+                onDetailChange={(detail) => {
+                  setAddressDetail(detail);
+                  updateProfile('location', addressMain ? `${addressMain} ${detail}` : detail);
+                }}
               />
             </FormField>
 

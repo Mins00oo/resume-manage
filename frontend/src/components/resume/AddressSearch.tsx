@@ -47,7 +47,7 @@ export default function AddressSearch({ value, onChange, detailValue, onDetailCh
           검색
         </button>
       </div>
-      {value && onDetailChange && (
+      {onDetailChange && (
         <input
           type="text"
           value={detailValue ?? ''}
