@@ -1,6 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { mockResumeDocument, type ResumeDocument } from '../mocks/data';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { queryClient } from '../lib/queryClient';
+import { resumeApi } from '../lib/api/resume';
+import type { ResumeDetail } from '../types/resume';
+import type { ResumeDocument } from '../mocks/data';
 import {
   IconChevronLeft,
   IconDownload,
@@ -40,16 +44,235 @@ const TEMPLATES: { key: 'clean' | 'modern' | 'elegant'; label: string; color: st
   { key: 'elegant', label: 'Elegant', color: '#0F766E' },
 ];
 
+function getErrorMessage(err: unknown): string {
+  if (err && typeof err === 'object' && 'response' in err) {
+    const resp = (err as { response?: { data?: { error?: { message?: string } } } }).response;
+    if (resp?.data?.error?.message) return resp.data.error.message;
+  }
+  if (err instanceof Error) return err.message;
+  return '알 수 없는 오류가 발생했어요.';
+}
+
+/** Convert backend ResumeDetail to the local ResumeDocument shape used by the preview/editor. */
+function detailToDocument(detail: ResumeDetail): ResumeDocument {
+  const bi = detail.basicInfo;
+  return {
+    id: detail.id,
+    title: detail.title,
+    template: 'clean',
+    accentColor: '#4F46E5',
+    profile: {
+      name: bi?.nameKo ?? '',
+      headline: bi?.shortIntro ?? '',
+      email: bi?.email ?? '',
+      phone: bi?.phone ?? '',
+      location: bi?.address ?? '',
+      links: [],
+    },
+    about: bi?.shortIntro ?? '',
+    experiences: detail.careers.map((c) => ({
+      id: String(c.career.id),
+      company: c.career.companyName ?? '',
+      role: c.career.position ?? '',
+      startDate: c.career.startDate ?? '',
+      endDate: c.career.isCurrent ? null : (c.career.endDate ?? ''),
+      location: c.career.department ?? '',
+      bullets: c.career.responsibilities
+        ? c.career.responsibilities.split('\n').filter(Boolean)
+        : [],
+    })),
+    projects: detail.careers.flatMap((c) =>
+      c.projects.map((p) => ({
+        id: String(p.id),
+        name: p.title ?? '',
+        role: '',
+        period: [p.startDate, p.endDate].filter(Boolean).join(' - '),
+        description: p.description ?? '',
+        bullets: [],
+        tech: [],
+      })),
+    ),
+    education: detail.educations.map((e) => ({
+      id: String(e.id),
+      school: e.schoolName ?? '',
+      degree: [e.major, e.degree].filter(Boolean).join(' · '),
+      startDate: e.startDate ?? '',
+      endDate: e.endDate ?? '',
+      description: e.gpa != null && e.gpaMax != null ? `GPA ${e.gpa}/${e.gpaMax}` : undefined,
+    })),
+    skills: [],
+    certifications: detail.certificates.map((c) => ({
+      id: String(c.id),
+      name: c.name ?? '',
+      issuer: c.issuer ?? '',
+      issuedAt: c.acquiredAt ?? '',
+    })),
+    languages: detail.languages.map((l) => ({
+      id: String(l.id),
+      name: l.language ?? '',
+      level: [l.testName, l.score].filter(Boolean).join(' '),
+    })),
+  };
+}
+
+/** Build an empty ResumeDocument for new resume creation. */
+function emptyDocument(): ResumeDocument {
+  return {
+    id: 0,
+    title: '새 이력서',
+    template: 'clean',
+    accentColor: '#4F46E5',
+    profile: { name: '', headline: '', email: '', phone: '', location: '', links: [] },
+    about: '',
+    experiences: [],
+    projects: [],
+    education: [],
+    skills: [],
+    certifications: [],
+    languages: [],
+  };
+}
+
 export default function ResumeEditorPage() {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const [doc, setDoc] = useState<ResumeDocument>(mockResumeDocument);
+  const { id: idParam } = useParams<{ id: string }>();
+  const isNew = !idParam || idParam === 'new';
+  const resumeId = isNew ? null : Number(idParam);
+
+  const [doc, setDoc] = useState<ResumeDocument>(emptyDocument());
   const [activeSection, setActiveSection] = useState<SectionKey>('profile');
   const [zoom, setZoom] = useState(0.72);
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle');
+  const initialized = useRef(false);
+
+  /* Fetch resume detail */
+  const {
+    data: detail,
+    isLoading,
+    error: fetchError,
+  } = useQuery({
+    queryKey: ['resume', resumeId],
+    queryFn: () => resumeApi.get(resumeId!),
+    enabled: resumeId != null,
+  });
+
+  /* Sync fetched detail to local state (once) */
+  useEffect(() => {
+    if (detail && !initialized.current) {
+      initialized.current = true;
+      setDoc(detailToDocument(detail));
+    }
+  }, [detail]);
+
+  /* Create new resume */
+  const createMutation = useMutation({
+    mutationFn: (title: string) => resumeApi.create(title),
+    onSuccess: (newId) => {
+      queryClient.invalidateQueries({ queryKey: ['resumes'] });
+      navigate(`/resumes/${newId}`, { replace: true });
+    },
+    onError: (err) => alert(getErrorMessage(err)),
+  });
+
+  /* Auto-create on mount for /resumes/new */
+  useEffect(() => {
+    if (isNew && !createMutation.isPending && !createMutation.isSuccess) {
+      createMutation.mutate('새 이력서');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isNew]);
+
+  /* Title update */
+  const titleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const updateTitleMutation = useMutation({
+    mutationFn: ({ id, title }: { id: number; title: string }) =>
+      resumeApi.updateTitle(id, title),
+    onSuccess: () => {
+      setSaveStatus('saved');
+      queryClient.invalidateQueries({ queryKey: ['resumes'] });
+    },
+    onError: (err) => {
+      setSaveStatus('idle');
+      alert(getErrorMessage(err));
+    },
+  });
+
+  const handleTitleChange = useCallback(
+    (title: string) => {
+      setDoc((prev) => ({ ...prev, title }));
+      if (resumeId == null) return;
+      if (titleTimerRef.current) clearTimeout(titleTimerRef.current);
+      setSaveStatus('saving');
+      titleTimerRef.current = setTimeout(() => {
+        updateTitleMutation.mutate({ id: resumeId, title });
+      }, 800);
+    },
+    [resumeId, updateTitleMutation],
+  );
+
+  /* Save basic info */
+  const saveBasicInfoMutation = useMutation({
+    mutationFn: () => {
+      if (resumeId == null) return Promise.resolve();
+      return resumeApi.updateBasicInfo(resumeId, {
+        nameKo: doc.profile.name,
+        email: doc.profile.email,
+        phone: doc.profile.phone,
+        address: doc.profile.location,
+        shortIntro: doc.about || doc.profile.headline,
+      });
+    },
+    onSuccess: () => {
+      setSaveStatus('saved');
+      if (resumeId != null) {
+        queryClient.invalidateQueries({ queryKey: ['resume', resumeId] });
+      }
+    },
+    onError: (err) => {
+      setSaveStatus('idle');
+      alert(getErrorMessage(err));
+    },
+  });
+
+  /* Auto-save basic info on profile/about changes (debounced) */
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevDocRef = useRef(doc);
+  useEffect(() => {
+    if (resumeId == null || !initialized.current) return;
+    const prev = prevDocRef.current;
+    prevDocRef.current = doc;
+
+    const profileChanged =
+      prev.profile.name !== doc.profile.name ||
+      prev.profile.email !== doc.profile.email ||
+      prev.profile.phone !== doc.profile.phone ||
+      prev.profile.location !== doc.profile.location ||
+      prev.profile.headline !== doc.profile.headline;
+    const aboutChanged = prev.about !== doc.about;
+
+    if (profileChanged || aboutChanged) {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      setSaveStatus('saving');
+      saveTimerRef.current = setTimeout(() => {
+        saveBasicInfoMutation.mutate();
+      }, 1200);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doc.profile, doc.about, resumeId]);
+
+  /* PDF download */
+  const downloadPdfMutation = useMutation({
+    mutationFn: () => {
+      if (resumeId == null) return Promise.reject(new Error('이력서가 아직 생성되지 않았어요.'));
+      return resumeApi.downloadPdf(resumeId);
+    },
+    onError: (err) => alert(getErrorMessage(err)),
+  });
 
   const completion = useMemo(() => {
+    if (detail) return detail.completionRate;
     let filled = 0;
-    let total = 8;
+    const total = 8;
     if (doc.profile.name && doc.profile.email) filled++;
     if (doc.about?.length > 20) filled++;
     if (doc.experiences.length > 0) filled++;
@@ -59,7 +282,39 @@ export default function ResumeEditorPage() {
     if (doc.certifications.length > 0) filled++;
     if (doc.languages.length > 0) filled++;
     return Math.round((filled / total) * 100);
-  }, [doc]);
+  }, [doc, detail]);
+
+  /* Loading / creating state */
+  if (isNew && createMutation.isPending) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+        <div className="text-[14px] text-slate-500">이력서를 생성하는 중...</div>
+      </div>
+    );
+  }
+
+  if (!isNew && isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+        <div className="text-[14px] text-slate-500">이력서를 불러오는 중...</div>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-64px)] gap-3">
+        <div className="text-[14px] text-rose-600">{getErrorMessage(fetchError)}</div>
+        <button
+          type="button"
+          onClick={() => navigate('/resumes')}
+          className="btn-outline text-[12px]"
+        >
+          목록으로 돌아가기
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)]">
@@ -76,14 +331,21 @@ export default function ResumeEditorPage() {
           <input
             type="text"
             value={doc.title}
-            onChange={(e) => setDoc({ ...doc, title: e.target.value })}
+            onChange={(e) => handleTitleChange(e.target.value)}
             className="text-[16px] font-bold text-slate-900 bg-transparent border-none focus:outline-none focus:ring-0 min-w-0 truncate"
           />
-          <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
-            <IconCheck className="w-3.5 h-3.5" />
-            자동 저장됨
-          </span>
-          <span className="text-[11px] text-slate-400">#{id ?? doc.id}</span>
+          {saveStatus === 'saved' && (
+            <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
+              <IconCheck className="w-3.5 h-3.5" />
+              저장됨
+            </span>
+          )}
+          {saveStatus === 'saving' && (
+            <span className="text-[11px] text-slate-400 font-medium">저장 중...</span>
+          )}
+          {resumeId != null && (
+            <span className="text-[11px] text-slate-400">#{resumeId}</span>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -140,11 +402,12 @@ export default function ResumeEditorPage() {
           </button>
           <button
             type="button"
-            onClick={() => alert('PDF 다운로드는 백엔드 연동 후 사용할 수 있어요.')}
-            className="btn-primary text-[12px] py-1.5 px-3"
+            onClick={() => downloadPdfMutation.mutate()}
+            disabled={downloadPdfMutation.isPending || resumeId == null}
+            className="btn-primary text-[12px] py-1.5 px-3 disabled:opacity-50"
           >
             <IconDownload className="w-3.5 h-3.5" />
-            PDF
+            {downloadPdfMutation.isPending ? '...' : 'PDF'}
           </button>
         </div>
       </div>
@@ -192,7 +455,7 @@ export default function ResumeEditorPage() {
               onClick={() => setZoom((z) => Math.max(0.4, z - 0.1))}
               className="w-7 h-7 rounded-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 flex items-center justify-center text-sm font-bold"
             >
-              −
+              -
             </button>
             <div className="text-[11px] font-semibold text-slate-600 w-12 text-center tabular-nums">
               {Math.round(zoom * 100)}%
