@@ -348,11 +348,8 @@ function PipelineFunnel({ data }: { data: { label: string; count: number; color:
     <div className="card p-5 h-full">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <div className="text-[12px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
-            Pipeline
-          </div>
-          <div className="text-[15px] font-bold text-[var(--color-text-primary)] mt-0.5">
-            파이프라인 퍼널
+          <div className="text-[15px] font-bold text-[var(--color-text-primary)]">
+            지원 현황
           </div>
         </div>
         <IconSparkles className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
@@ -422,7 +419,7 @@ function KpiCard({
         )}
       />
       <div className="relative">
-        <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+        <div className="text-[11px] font-semibold text-[var(--color-text-tertiary)]">
           {label}
         </div>
         <div className="mt-2 flex items-baseline gap-2">
@@ -457,10 +454,7 @@ function PassRatesBoard({ data }: { data: DashboardSummary['passRates'] }) {
     <div className="card p-5 h-full">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <div className="text-[12px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
-            Success Rate
-          </div>
-          <div className="text-[15px] font-bold text-[var(--color-text-primary)] mt-0.5">
+          <div className="text-[15px] font-bold text-[var(--color-text-primary)]">
             단계별 합격률
           </div>
         </div>
@@ -522,7 +516,7 @@ function RingChart({ value, color }: { value: number; color: string }) {
   );
 }
 
-/* ---------- Master resume card ---------- */
+/* ---------- 대표 이력서 card ---------- */
 
 function MasterResumeCard({
   resume,
@@ -534,11 +528,11 @@ function MasterResumeCard({
   if (!resume) {
     return (
       <div className="card p-5 h-full flex flex-col items-center justify-center text-center">
-        <div className="text-[12px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide mb-3">
-          Master Resume
+        <div className="text-[14px] font-bold text-[var(--color-text-primary)] mb-3">
+          대표 이력서
         </div>
         <div className="text-[13px] text-[var(--color-text-secondary)]">
-          마스터 이력서가 없어요.
+          대표 이력서가 없어요.
         </div>
         <button
           type="button"
@@ -559,12 +553,12 @@ function MasterResumeCard({
       className="card card-hover p-5 h-full w-full text-left group"
     >
       <div className="flex items-center justify-between mb-3">
-        <div className="text-[12px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
-          Master Resume
+        <div className="text-[14px] font-bold text-[var(--color-text-primary)]">
+          대표 이력서
         </div>
         <div className="pill bg-indigo-50 text-indigo-700 dark:bg-indigo-500/[0.12] dark:text-indigo-300">
           <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400" />
-          ACTIVE
+          사용 중
         </div>
       </div>
       <div className="text-[15px] font-bold text-[var(--color-text-primary)] leading-snug">
@@ -577,7 +571,7 @@ function MasterResumeCard({
       {/* Progress */}
       <div className="mt-5">
         <div className="flex items-baseline justify-between">
-          <div className="text-[11px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
+          <div className="text-[11px] font-semibold text-[var(--color-text-tertiary)]">
             완성도
           </div>
           <div className="text-[22px] font-extrabold text-[var(--color-text-primary)] tracking-tight">
@@ -648,10 +642,7 @@ function ActivityHeatmap({
     <div className="card p-5">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
-          <div className="text-[12px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
-            Activity
-          </div>
-          <div className="text-[15px] font-bold text-[var(--color-text-primary)] mt-0.5">
+          <div className="text-[15px] font-bold text-[var(--color-text-primary)]">
             최근 활동
           </div>
         </div>
@@ -697,7 +688,7 @@ function ActivityHeatmap({
 function SmallStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="text-right">
-      <div className="text-[10px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
+      <div className="text-[10px] font-semibold text-[var(--color-text-tertiary)]">
         {label}
       </div>
       <div className="text-[14px] font-bold text-[var(--color-text-primary)] mt-0.5">
@@ -729,10 +720,7 @@ function UpcomingList({
     <div className="card p-5 h-full">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <div className="text-[12px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
-            Upcoming
-          </div>
-          <div className="text-[15px] font-bold text-[var(--color-text-primary)] mt-0.5">
+          <div className="text-[15px] font-bold text-[var(--color-text-primary)]">
             다가오는 마감
           </div>
         </div>

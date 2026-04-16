@@ -261,8 +261,8 @@ export default function JobApplyDetailPage() {
 
       {/* Pipeline tracker */}
       <div className="card p-4 md:p-5">
-        <div className="text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-4">
-          Progress
+        <div className="text-[12px] font-semibold text-[var(--color-text-secondary)] mb-4">
+          진행 상황
         </div>
         <div className="overflow-x-auto -mx-1 px-1 pb-1">
           <div className="relative flex items-start justify-between min-w-[420px]">
@@ -381,7 +381,7 @@ export default function JobApplyDetailPage() {
         <div className="col-span-12 lg:col-span-4 space-y-5">
           {/* Status block */}
           <div className="card p-5">
-            <div className="text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">
+            <div className="text-[12px] font-semibold text-[var(--color-text-secondary)]  mb-3">
               상태
             </div>
             <div
@@ -428,7 +428,7 @@ export default function JobApplyDetailPage() {
 
           {/* Timestamps */}
           <div className="card p-5">
-            <div className="text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">
+            <div className="text-[12px] font-semibold text-[var(--color-text-secondary)]  mb-3">
               기록
             </div>
             <ol className="space-y-3">
@@ -461,7 +461,7 @@ function Info({
 }) {
   return (
     <div className={wide ? 'col-span-2' : ''}>
-      <dt className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-secondary)] mb-1">
+      <dt className="text-[11px] font-semibold  text-[var(--color-text-secondary)] mb-1">
         {label}
       </dt>
       <dd className="text-[var(--color-text-primary)] font-medium truncate">{value}</dd>

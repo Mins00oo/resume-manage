@@ -90,8 +90,8 @@ export default function JobApplyCreatePage() {
 
       <div className="card p-5 md:p-8">
         <div className="mb-6">
-          <div className="text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
-            New Application
+          <div className="text-[12px] font-semibold text-[var(--color-text-tertiary)]">
+            새 지원 등록
           </div>
           <h2 className="text-[22px] font-bold tracking-tight text-[var(--color-text-primary)] mt-1">
             새 지원 등록
@@ -225,7 +225,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="block text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-text-secondary)] mb-1.5">
+      <span className="block text-[11.5px] font-semibold text-[var(--color-text-secondary)] mb-1.5">
         {label}
         {required && <span className="text-rose-500 ml-0.5">*</span>}
       </span>
