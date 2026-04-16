@@ -53,7 +53,7 @@ export default function JobApplyCreatePage() {
       <button
         type="button"
         onClick={() => navigate('/applies')}
-        className="inline-flex items-center gap-1 text-[12px] text-slate-500 hover:text-slate-900 font-medium"
+        className="inline-flex items-center gap-1 text-[12px] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] font-medium"
       >
         <IconChevronLeft className="w-3.5 h-3.5" />
         지원 목록
@@ -61,28 +61,28 @@ export default function JobApplyCreatePage() {
 
       <div className="card p-8">
         <div className="mb-6">
-          <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wider">
+          <div className="text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
             New Application
           </div>
-          <h2 className="text-[22px] font-bold tracking-tight text-slate-900 mt-1">
+          <h2 className="text-[22px] font-bold tracking-tight text-[var(--color-text-primary)] mt-1">
             새 지원 등록
           </h2>
-          <p className="text-[13px] text-slate-500 mt-1">
+          <p className="text-[13px] text-[var(--color-text-secondary)] mt-1">
             회사명만 적어도 저장할 수 있어요. 나머지는 나중에 채워넣어도 돼요.
           </p>
         </div>
 
         {/* URL auto-parse hint */}
-        <div className="mb-6 rounded-xl bg-indigo-50/70 border border-indigo-100 p-4">
+        <div className="mb-6 rounded-xl bg-indigo-50/70 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 p-4">
           <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
               <IconSparkles className="w-4 h-4" />
             </div>
             <div className="flex-1">
-              <div className="text-[13px] font-semibold text-indigo-900">
+              <div className="text-[13px] font-semibold text-indigo-900 dark:text-indigo-300">
                 채용 공고 URL로 자동 채우기
               </div>
-              <div className="text-[11.5px] text-indigo-700/80 mt-0.5">
+              <div className="text-[11.5px] text-indigo-700/80 dark:text-indigo-400/80 mt-0.5">
                 채용 공고 링크를 붙여넣으면 AI가 회사 · 포지션 · 마감일을 뽑아줘요.
               </div>
             </div>
@@ -211,7 +211,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="block text-[11.5px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+      <span className="block text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-text-secondary)] mb-1.5">
         {label}
         {required && <span className="text-rose-500 ml-0.5">*</span>}
       </span>

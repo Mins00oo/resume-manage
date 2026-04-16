@@ -42,7 +42,7 @@ export default function JobApplyDetailPage() {
   if (!item) {
     return (
       <div className="card p-10 text-center">
-        <p className="text-sm text-slate-600">존재하지 않는 지원이에요.</p>
+        <p className="text-sm text-[var(--color-text-secondary)]">존재하지 않는 지원이에요.</p>
         <button
           type="button"
           onClick={() => navigate('/applies')}
@@ -64,7 +64,7 @@ export default function JobApplyDetailPage() {
       <button
         type="button"
         onClick={() => navigate('/applies')}
-        className="inline-flex items-center gap-1 text-[12px] text-slate-500 hover:text-slate-900 font-medium"
+        className="inline-flex items-center gap-1 text-[12px] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] font-medium"
       >
         <IconChevronLeft className="w-3.5 h-3.5" />
         지원 목록
@@ -94,10 +94,10 @@ export default function JobApplyDetailPage() {
               <CompanyAvatar item={item} size={72} />
               <div className="pb-1">
                 <StageBadge item={item} />
-                <div className="text-[26px] font-bold tracking-tight text-slate-900 mt-2 leading-tight">
+                <div className="text-[26px] font-bold tracking-tight text-[var(--color-text-primary)] mt-2 leading-tight">
                   {item.company}
                 </div>
-                <div className="text-[14px] text-slate-500">{item.position}</div>
+                <div className="text-[14px] text-[var(--color-text-secondary)]">{item.position}</div>
               </div>
             </div>
             <div className="flex items-center gap-2 pb-1">
@@ -121,7 +121,7 @@ export default function JobApplyDetailPage() {
             {item.tags.map((tag) => (
               <span
                 key={tag}
-                className="pill bg-slate-100 text-slate-700"
+                className="pill bg-[var(--color-bg-muted)] text-[var(--color-text-primary)]"
               >
                 #{tag}
               </span>
@@ -132,7 +132,7 @@ export default function JobApplyDetailPage() {
               </span>
             )}
             {item.location && (
-              <span className="pill bg-slate-100 text-slate-700">
+              <span className="pill bg-[var(--color-bg-muted)] text-[var(--color-text-primary)]">
                 📍 {item.location}
               </span>
             )}
@@ -154,11 +154,11 @@ export default function JobApplyDetailPage() {
 
       {/* Pipeline tracker */}
       <div className="card p-5">
-        <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wider mb-4">
+        <div className="text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-4">
           Progress
         </div>
         <div className="relative flex items-start justify-between">
-          <div className="absolute top-4 left-8 right-8 h-0.5 bg-slate-200" />
+          <div className="absolute top-4 left-8 right-8 h-0.5 bg-[var(--color-border-subtle)]" />
           <div
             className="absolute top-4 left-8 h-0.5 bg-indigo-500 transition-all"
             style={{
@@ -183,8 +183,8 @@ export default function JobApplyDetailPage() {
                     done
                       ? 'bg-indigo-500 border-indigo-500 text-white'
                       : current
-                        ? 'bg-white border-indigo-500 text-indigo-700 ring-4 ring-indigo-100'
-                        : 'bg-white border-slate-200 text-slate-400',
+                        ? 'bg-[var(--color-bg-surface)] border-indigo-500 text-indigo-700 ring-4 ring-indigo-100'
+                        : 'bg-[var(--color-bg-surface)] border-[var(--color-border-subtle)] text-[var(--color-text-tertiary)]',
                   )}
                 >
                   {done ? '✓' : i + 1}
@@ -195,8 +195,8 @@ export default function JobApplyDetailPage() {
                     current
                       ? 'text-indigo-700'
                       : done
-                        ? 'text-slate-700'
-                        : 'text-slate-400',
+                        ? 'text-[var(--color-text-primary)]'
+                        : 'text-[var(--color-text-tertiary)]',
                   )}
                 >
                   {p.label}
@@ -213,7 +213,7 @@ export default function JobApplyDetailPage() {
           {/* Info card */}
           <div className="card p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="text-[15px] font-bold text-slate-900">기본 정보</div>
+              <div className="text-[15px] font-bold text-[var(--color-text-primary)]">기본 정보</div>
             </div>
             <dl className="grid grid-cols-2 gap-5 text-[13px]">
               <Info label="회사" value={item.company} />
@@ -243,7 +243,7 @@ export default function JobApplyDetailPage() {
           {/* Memo */}
           <div className="card p-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-[15px] font-bold text-slate-900">메모</div>
+              <div className="text-[15px] font-bold text-[var(--color-text-primary)]">메모</div>
               <button
                 type="button"
                 className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-indigo-600 hover:text-indigo-700"
@@ -255,10 +255,10 @@ export default function JobApplyDetailPage() {
             {isEditing ? (
               <textarea
                 defaultValue={item.memo}
-                className="w-full min-h-[140px] px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 resize-none"
+                className="w-full min-h-[140px] px-3.5 py-2.5 text-[13px] bg-[var(--color-bg-muted)] border border-[var(--color-border-subtle)] rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 resize-none text-[var(--color-text-primary)]"
               />
             ) : (
-              <p className="text-[13px] text-slate-700 leading-relaxed whitespace-pre-wrap">
+              <p className="text-[13px] text-[var(--color-text-primary)] leading-relaxed whitespace-pre-wrap">
                 {item.memo}
               </p>
             )}
@@ -268,7 +268,7 @@ export default function JobApplyDetailPage() {
         <div className="col-span-12 lg:col-span-4 space-y-5">
           {/* Status block */}
           <div className="card p-5">
-            <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wider mb-3">
+            <div className="text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">
               상태
             </div>
             <div
@@ -281,7 +281,7 @@ export default function JobApplyDetailPage() {
               <div className={cn('text-[16px] font-bold', stage.text)}>
                 {stage.label}
               </div>
-              <div className="text-[11.5px] text-slate-500 mt-1">
+              <div className="text-[11.5px] text-[var(--color-text-secondary)] mt-1">
                 현재 진행 중인 단계
               </div>
             </div>
@@ -292,7 +292,7 @@ export default function JobApplyDetailPage() {
 
           {/* Timestamps */}
           <div className="card p-5">
-            <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wider mb-3">
+            <div className="text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">
               기록
             </div>
             <ol className="space-y-3">
@@ -325,10 +325,10 @@ function Info({
 }) {
   return (
     <div className={wide ? 'col-span-2' : ''}>
-      <dt className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1">
+      <dt className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-secondary)] mb-1">
         {label}
       </dt>
-      <dd className="text-slate-900 font-medium truncate">{value}</dd>
+      <dd className="text-[var(--color-text-primary)] font-medium truncate">{value}</dd>
     </div>
   );
 }
@@ -347,14 +347,14 @@ function TimestampRow({
       <IconClock
         className={cn(
           'w-4 h-4 shrink-0',
-          emphasize ? 'text-rose-500' : 'text-slate-400',
+          emphasize ? 'text-rose-500' : 'text-[var(--color-text-tertiary)]',
         )}
       />
-      <div className="flex-1 text-[12px] text-slate-500">{label}</div>
+      <div className="flex-1 text-[12px] text-[var(--color-text-secondary)]">{label}</div>
       <div
         className={cn(
           'text-[12px] font-semibold',
-          emphasize ? 'text-rose-600' : 'text-slate-700',
+          emphasize ? 'text-rose-600' : 'text-[var(--color-text-primary)]',
         )}
       >
         {value === '-' ? '-' : value.replace(/-/g, '.')}
