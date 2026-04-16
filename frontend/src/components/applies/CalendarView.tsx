@@ -66,52 +66,71 @@ export default function CalendarView({ items, onOpen }: Props) {
 
   const todayIso = '2026-04-15';
 
+  const prevYear = () => setCursor((c) => ({ ...c, year: c.year - 1 }));
+  const nextYear = () => setCursor((c) => ({ ...c, year: c.year + 1 }));
+
   return (
     <div className="p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
+          {/* Year nav */}
+          <button
+            type="button"
+            onClick={prevYear}
+            className="w-7 h-7 rounded-lg text-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors text-[11px] font-bold"
+          >
+            ‹‹
+          </button>
+          {/* Month nav */}
           <button
             type="button"
             onClick={prev}
-            className="w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
           >
             <IconChevronLeft className="w-4 h-4" />
           </button>
-          <div className="text-[15px] font-bold text-slate-900 min-w-[120px] text-center">
+          <div className="text-[15px] font-bold text-[var(--color-text-primary)] min-w-[120px] text-center">
             {monthLabel}
           </div>
           <button
             type="button"
             onClick={next}
-            className="w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
           >
             <IconChevronRight className="w-4 h-4" />
           </button>
           <button
             type="button"
+            onClick={nextYear}
+            className="w-7 h-7 rounded-lg text-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors text-[11px] font-bold"
+          >
+            ››
+          </button>
+          <button
+            type="button"
             onClick={today}
-            className="ml-2 px-3 py-1.5 text-[12px] font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+            className="ml-2 px-3 py-1.5 text-[12px] font-semibold text-[var(--color-text-secondary)] bg-[var(--color-bg-muted)] hover:brightness-95 rounded-lg transition-colors"
           >
             오늘
           </button>
         </div>
-        <div className="flex items-center gap-3 text-[11px] text-slate-500">
+        <div className="flex items-center gap-3 text-[11px] text-[var(--color-text-secondary)]">
           <LegendDot color="#ef4444" label="마감" />
           <LegendDot color="#6366f1" label="제출" />
         </div>
       </div>
 
       {/* Weekday header */}
-      <div className="grid grid-cols-7 border border-slate-200/80 rounded-2xl overflow-hidden">
+      <div className="grid grid-cols-7 border border-[var(--color-border-subtle)] rounded-2xl overflow-hidden">
         {['일', '월', '화', '수', '목', '금', '토'].map((d, i) => (
           <div
             key={d}
             className={cn(
-              'text-center py-2 text-[11px] font-bold bg-slate-50 border-b border-slate-200/80',
+              'text-center py-2 text-[11px] font-bold bg-[var(--color-bg-muted)] border-b border-[var(--color-border-subtle)]',
               i === 0 && 'text-rose-500',
               i === 6 && 'text-blue-500',
-              i !== 0 && i !== 6 && 'text-slate-600',
+              i !== 0 && i !== 6 && 'text-[var(--color-text-secondary)]',
             )}
           >
             {d}
@@ -128,8 +147,8 @@ export default function CalendarView({ items, onOpen }: Props) {
             <div
               key={iso}
               className={cn(
-                'min-h-[110px] border-r border-b border-slate-200/80 last:border-r-0 p-1.5 relative flex flex-col',
-                !cell.inMonth && 'bg-slate-50/60',
+                'min-h-[110px] border-r border-b border-[var(--color-border-subtle)] last:border-r-0 p-1.5 relative flex flex-col',
+                !cell.inMonth && 'opacity-40',
                 idx % 7 === 6 && 'border-r-0',
                 idx >= 35 && 'border-b-0',
               )}
@@ -139,12 +158,12 @@ export default function CalendarView({ items, onOpen }: Props) {
                   className={cn(
                     'text-[11.5px] font-semibold',
                     !cell.inMonth
-                      ? 'text-slate-300'
+                      ? 'text-[var(--color-text-tertiary)]'
                       : isWeekend
                         ? idx % 7 === 0
                           ? 'text-rose-500'
                           : 'text-blue-500'
-                        : 'text-slate-700',
+                        : 'text-[var(--color-text-primary)]',
                     isToday &&
                       'w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center',
                   )}
@@ -177,7 +196,7 @@ export default function CalendarView({ items, onOpen }: Props) {
                   );
                 })}
                 {events.length > 3 && (
-                  <div className="text-[10px] text-slate-400 pl-1.5">
+                  <div className="text-[10px] text-[var(--color-text-tertiary)] pl-1.5">
                     +{events.length - 3}
                   </div>
                 )}
