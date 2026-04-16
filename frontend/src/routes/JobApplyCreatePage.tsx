@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IconChevronLeft, IconSparkles } from '../components/icons/Icons';
+import Dropdown from '../components/common/Dropdown';
 
 const EMPLOYMENT_OPTIONS = [
   { value: 'NEW', label: '신입' },
@@ -110,20 +111,13 @@ export default function JobApplyCreatePage() {
               />
             </Field>
             <Field label="고용 형태">
-              <select
+              <Dropdown
                 value={form.employmentType}
-                onChange={(e) =>
-                  handleChange('employmentType', e.target.value)
-                }
-                className="input-base"
-              >
-                <option value="">선택 안함</option>
-                {EMPLOYMENT_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(v) => handleChange('employmentType', v)}
+                options={EMPLOYMENT_OPTIONS}
+                placeholder="선택 안함"
+                allowEmpty
+              />
             </Field>
           </div>
           <Field label="채용 공고 URL">
