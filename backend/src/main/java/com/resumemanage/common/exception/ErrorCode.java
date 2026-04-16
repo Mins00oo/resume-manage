@@ -21,6 +21,10 @@ public enum ErrorCode {
     JOB_APPLY_NOT_FOUND("JOB_APPLY_001", HttpStatus.NOT_FOUND, "지원 내역을 찾을 수 없습니다."),
     INVALID_STATUS_TRANSITION("JOB_APPLY_002", HttpStatus.BAD_REQUEST, "유효하지 않은 상태 전이입니다."),
 
+    SECTION_NOT_FOUND("RESUME_003", HttpStatus.NOT_FOUND, "해당 섹션을 찾을 수 없습니다."),
+    CAREER_NOT_FOUND("RESUME_004", HttpStatus.NOT_FOUND, "경력 항목을 찾을 수 없습니다."),
+    COVER_LETTER_NOT_FOUND("RESUME_005", HttpStatus.NOT_FOUND, "자기소개서를 찾을 수 없습니다."),
+
     // User
     USER_NOT_FOUND("USER_001", HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.");
 
