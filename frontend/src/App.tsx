@@ -9,6 +9,9 @@ import ResumesListPage from './routes/ResumesListPage';
 import ResumeEditorPage from './routes/ResumeEditorPage';
 import ResumePreviewPage from './routes/ResumePreviewPage';
 import CalendarPage from './routes/CalendarPage';
+import SettingsPage from './routes/SettingsPage';
+import PrivacyPage from './routes/PrivacyPage';
+import TermsPage from './routes/TermsPage';
 import AppShell from './components/layout/AppShell';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 
@@ -34,6 +37,9 @@ export default function App() {
           <Route path="/resumes/:id" element={<ResumeEditorPage />} />
           <Route path="/resumes/:id/preview" element={<ResumePreviewPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings/privacy" element={<PrivacyPage />} />
+          <Route path="/settings/terms" element={<TermsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

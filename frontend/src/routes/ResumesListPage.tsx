@@ -8,7 +8,6 @@ import type { ResumeSummary } from '../types/resume';
 import {
   IconPlus,
   IconArrowUpRight,
-  IconSearch,
 } from '../components/icons/Icons';
 import Dropdown from '../components/common/Dropdown';
 
@@ -31,7 +30,6 @@ const SORT_OPTIONS = [
 export default function ResumesListPage() {
   const { toast, confirm } = useToast();
   const navigate = useNavigate();
-  const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('updatedAt');
 
   const { data: resumes = [], isLoading, error } = useQuery({
@@ -40,12 +38,7 @@ export default function ResumesListPage() {
   });
 
   const sorted = useMemo(() => {
-    let list = [...resumes];
-
-    if (search) {
-      const q = search.toLowerCase();
-      list = list.filter((r) => r.title.toLowerCase().includes(q));
-    }
+    const list = [...resumes];
 
     list.sort((a, b) => {
       if (a.isMaster && !b.isMaster) return -1;
@@ -55,7 +48,7 @@ export default function ResumesListPage() {
     });
 
     return list;
-  }, [search, sort, resumes]);
+  }, [sort, resumes]);
 
   const createMutation = useMutation({
     mutationFn: (title: string) => resumeApi.create(title),
@@ -148,18 +141,8 @@ export default function ResumesListPage() {
         </button>
       </div>
 
-      {/* Search + Sort */}
-      <div className="flex flex-col sm:flex-row gap-2">
-        <div className="relative flex-1">
-          <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-tertiary)]" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="이력서 검색"
-            className="input-base w-full pl-9"
-          />
-        </div>
+      {/* Sort */}
+      <div className="flex justify-end">
         <div className="w-full sm:w-40">
           <Dropdown
             value={sort}
@@ -171,22 +154,8 @@ export default function ResumesListPage() {
       </div>
 
       {/* Grid */}
-      {sorted.length === 0 && !search ? (
+      {sorted.length === 0 ? (
         <EmptyState onCreateClick={handleCreate} />
-      ) : sorted.length === 0 && search ? (
-        <div className="card py-16 text-center">
-          <div className="text-[32px] mb-3">🔍</div>
-          <div className="text-[14px] font-semibold text-[var(--color-text-primary)]">
-            '{search}'에 해당하는 이력서가 없어요
-          </div>
-          <button
-            type="button"
-            onClick={() => setSearch('')}
-            className="mt-3 text-[12px] text-indigo-600 hover:text-indigo-700 font-medium"
-          >
-            검색어 지우기
-          </button>
-        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {sorted.map((resume) => (
