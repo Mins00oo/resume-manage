@@ -43,6 +43,7 @@ public class ResumeBasicInfoService {
         info.updateContact(req.email(), req.phone(), req.address());
         info.updatePersonal(req.gender(), req.birthDate(), req.shortIntro());
         info.updateMilitaryAndPreferences(req.militaryStatus(), req.disabilityStatus(), req.veteranStatus());
+        info.updateAddressDetail(req.addressDetail());
 
         // Profile image attachment
         if (req.profileImageFileId() != null) {
@@ -54,6 +55,30 @@ public class ResumeBasicInfoService {
             info.attachProfileImage(file);
         } else if (info.getProfileImageFile() != null) {
             info.detachProfileImage();
+        }
+
+        // Career description file attachment
+        if (req.careerDescriptionFileId() != null) {
+            UploadedFile file = uploadedFileRepository.findById(req.careerDescriptionFileId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.FILE_NOT_FOUND));
+            if (!file.getUser().getId().equals(userId)) {
+                throw new BusinessException(ErrorCode.FORBIDDEN);
+            }
+            info.attachCareerDescriptionFile(file);
+        } else if (info.getCareerDescriptionFile() != null) {
+            info.detachCareerDescriptionFile();
+        }
+
+        // Portfolio file attachment
+        if (req.portfolioFileId() != null) {
+            UploadedFile file = uploadedFileRepository.findById(req.portfolioFileId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.FILE_NOT_FOUND));
+            if (!file.getUser().getId().equals(userId)) {
+                throw new BusinessException(ErrorCode.FORBIDDEN);
+            }
+            info.attachPortfolioFile(file);
+        } else if (info.getPortfolioFile() != null) {
+            info.detachPortfolioFile();
         }
     }
 

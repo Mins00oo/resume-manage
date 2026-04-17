@@ -46,9 +46,20 @@ public class ResumeBasicInfo {
     @Column(length = 300)
     private String address;
 
+    @Column(name = "address_detail", length = 200)
+    private String addressDetail;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_image_file_id")
     private UploadedFile profileImageFile;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "career_description_file_id")
+    private UploadedFile careerDescriptionFile;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "portfolio_file_id")
+    private UploadedFile portfolioFile;
 
     @Column(name = "short_intro", length = 500)
     private String shortIntro;
@@ -99,5 +110,25 @@ public class ResumeBasicInfo {
 
     public void detachProfileImage() {
         this.profileImageFile = null;
+    }
+
+    public void updateAddressDetail(String addressDetail) {
+        this.addressDetail = addressDetail;
+    }
+
+    public void attachCareerDescriptionFile(UploadedFile file) {
+        this.careerDescriptionFile = file;
+    }
+
+    public void detachCareerDescriptionFile() {
+        this.careerDescriptionFile = null;
+    }
+
+    public void attachPortfolioFile(UploadedFile file) {
+        this.portfolioFile = file;
+    }
+
+    public void detachPortfolioFile() {
+        this.portfolioFile = null;
     }
 }

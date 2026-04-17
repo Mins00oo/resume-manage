@@ -43,6 +43,7 @@ public class ResumeCareerService {
                 .endDate(req.endDate())
                 .isCurrent(req.isCurrent())
                 .responsibilities(req.responsibilities())
+                .employmentType(req.employmentType())
                 .orderIndex(req.orderIndex())
                 .build();
 
@@ -57,7 +58,7 @@ public class ResumeCareerService {
 
         entity.update(req.companyName(), req.position(), req.department(),
                 req.startDate(), req.endDate(), req.isCurrent(),
-                req.responsibilities());
+                req.responsibilities(), req.employmentType());
         entity.changeOrder(req.orderIndex());
     }
 

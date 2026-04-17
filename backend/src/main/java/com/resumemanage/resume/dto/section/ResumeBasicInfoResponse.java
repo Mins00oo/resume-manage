@@ -14,11 +14,14 @@ public record ResumeBasicInfoResponse(
         String email,
         String phone,
         String address,
+        String addressDetail,
         String shortIntro,
         MilitaryStatus militaryStatus,
         boolean disabilityStatus,
         boolean veteranStatus,
-        Long profileImageFileId
+        Long profileImageFileId,
+        Long careerDescriptionFileId,
+        Long portfolioFileId
 ) {
     public static ResumeBasicInfoResponse from(ResumeBasicInfo entity) {
         return new ResumeBasicInfoResponse(
@@ -29,11 +32,14 @@ public record ResumeBasicInfoResponse(
                 entity.getEmail(),
                 entity.getPhone(),
                 entity.getAddress(),
+                entity.getAddressDetail(),
                 entity.getShortIntro(),
                 entity.getMilitaryStatus(),
                 entity.isDisabilityStatus(),
                 entity.isVeteranStatus(),
-                entity.getProfileImageFile() != null ? entity.getProfileImageFile().getId() : null
+                entity.getProfileImageFile() != null ? entity.getProfileImageFile().getId() : null,
+                entity.getCareerDescriptionFile() != null ? entity.getCareerDescriptionFile().getId() : null,
+                entity.getPortfolioFile() != null ? entity.getPortfolioFile().getId() : null
         );
     }
 }
