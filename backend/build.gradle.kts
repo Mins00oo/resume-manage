@@ -55,6 +55,10 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-mysql")
 
+    // Web Push (VAPID + payload 암호화)
+    implementation("nl.martijndwars:web-push:5.1.1")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
+
     // MySQL driver
     runtimeOnly("com.mysql:mysql-connector-j")
 

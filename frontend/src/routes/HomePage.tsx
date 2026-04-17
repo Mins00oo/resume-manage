@@ -608,7 +608,7 @@ function ActivityHeatmap({
 }: {
   data: { date: string; count: number }[];
 }) {
-  const theme = useThemeStore((s) => s.theme);
+  const resolvedTheme = useThemeStore((s) => s.resolved);
 
   const weeks: { date: string; count: number }[][] = [];
   let currentWeek: { date: string; count: number }[] = [];
@@ -621,7 +621,7 @@ function ActivityHeatmap({
   });
 
   const color = (count: number) => {
-    if (theme === 'dark') {
+    if (resolvedTheme === 'dark') {
       if (count === 0) return '#1a1f2d';
       if (count === 1) return '#312e81';
       if (count === 2) return '#4f46e5';

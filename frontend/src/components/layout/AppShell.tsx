@@ -32,6 +32,9 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
   '/applies/new': { title: '새 지원 등록', subtitle: '회사를 추가해보세요' },
   '/resumes': { title: '이력서', subtitle: '회사별 이력서를 관리해요' },
   '/calendar': { title: '캘린더', subtitle: '마감 · 면접 · 제출 일정' },
+  '/settings': { title: '설정', subtitle: '앱 환경을 내 스타일대로' },
+  '/settings/privacy': { title: '개인정보 처리방침', subtitle: '' },
+  '/settings/terms': { title: '이용약관', subtitle: '' },
 };
 
 function matchPageTitle(pathname: string) {
@@ -39,6 +42,9 @@ function matchPageTitle(pathname: string) {
   if (pathname.startsWith('/applies')) return pageTitles['/applies'];
   if (pathname.startsWith('/resumes')) return pageTitles['/resumes'];
   if (pathname.startsWith('/calendar')) return pageTitles['/calendar'];
+  if (pathname.startsWith('/settings/privacy')) return pageTitles['/settings/privacy'];
+  if (pathname.startsWith('/settings/terms')) return pageTitles['/settings/terms'];
+  if (pathname.startsWith('/settings')) return pageTitles['/settings'];
   return pageTitles['/'];
 }
 
@@ -46,7 +52,7 @@ export default function AppShell() {
   const clearToken = useAuthStore((s) => s.clearToken);
   const navigate = useNavigate();
   const location = useLocation();
-  const theme = useThemeStore((s) => s.theme);
+  const resolvedTheme = useThemeStore((s) => s.resolved);
   const toggleTheme = useThemeStore((s) => s.toggle);
 
   const { toast } = useToast();
@@ -169,18 +175,27 @@ export default function AppShell() {
           {!collapsed && (
             <div className="px-3 pt-6 pb-2 text-[10px] font-semibold tracking-[0.14em] uppercase text-[var(--color-text-tertiary)]">Account</div>
           )}
-          <button
-            type="button"
-            onClick={() => toast('설정 페이지는 준비 중이에요.', 'info')}
+          <NavLink
+            to="/settings"
+            onClick={closeSidebar}
             title={collapsed ? '설정' : undefined}
-            className={cn(
-              'w-full flex items-center rounded-xl text-[13.5px] font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)] transition-all',
-              collapsed ? 'justify-center py-2.5' : 'gap-3 px-3 py-2.5',
-            )}
+            className={({ isActive }) =>
+              cn(
+                'w-full flex items-center rounded-xl text-[13.5px] font-medium transition-all',
+                collapsed ? 'justify-center py-2.5' : 'gap-3 px-3 py-2.5',
+                isActive
+                  ? 'bg-indigo-50 text-indigo-700 shadow-[inset_0_0_0_1px_rgba(99,102,241,0.15)] dark:bg-indigo-500/[0.12] dark:text-indigo-300 dark:shadow-[inset_0_0_0_1px_rgba(129,140,248,0.2)]'
+                  : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)]',
+              )
+            }
           >
-            <IconSettings className="w-[18px] h-[18px] shrink-0 text-[var(--color-text-tertiary)]" />
-            {!collapsed && <span>설정</span>}
-          </button>
+            {({ isActive }) => (
+              <>
+                <IconSettings className={cn('w-[18px] h-[18px] shrink-0', isActive ? 'text-indigo-600 dark:text-indigo-300' : 'text-[var(--color-text-tertiary)]')} />
+                {!collapsed && <span>설정</span>}
+              </>
+            )}
+          </NavLink>
         </nav>
 
         {/* User card */}
@@ -246,10 +261,10 @@ export default function AppShell() {
               <button
                 type="button"
                 onClick={toggleTheme}
-                title={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
+                title={resolvedTheme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
                 className="relative w-9 h-9 md:w-10 md:h-10 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
               >
-                {theme === 'dark' ? <IconSun className="w-[18px] h-[18px]" /> : <IconMoon className="w-[18px] h-[18px]" />}
+                {resolvedTheme === 'dark' ? <IconSun className="w-[18px] h-[18px]" /> : <IconMoon className="w-[18px] h-[18px]" />}
               </button>
               <button
                 type="button"

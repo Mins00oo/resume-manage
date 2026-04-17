@@ -25,15 +25,19 @@
     <script>
       (function () {
         try {
-          var t = localStorage.getItem('theme');
-          if (t !== 'light' && t !== 'dark') {
-            t = window.matchMedia('(prefers-color-scheme: dark)').matches
+          var saved = localStorage.getItem('theme');
+          var resolved;
+          if (saved === 'light' || saved === 'dark') {
+            resolved = saved;
+          } else {
+            // 'system' 또는 미저장 — prefers-color-scheme 따라감
+            resolved = window.matchMedia('(prefers-color-scheme: dark)').matches
               ? 'dark'
               : 'light';
           }
           var root = document.documentElement;
-          if (t === 'dark') root.classList.add('dark');
-          root.style.colorScheme = t;
+          if (resolved === 'dark') root.classList.add('dark');
+          root.style.colorScheme = resolved;
         } catch (e) {}
       })();
     </script>
