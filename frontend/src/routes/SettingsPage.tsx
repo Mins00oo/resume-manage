@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { queryClient } from '../lib/queryClient';
+import { api } from '../lib/api';
 import { settingsApi, type UserPreferences } from '../lib/api/settings';
 import { pushApi, ensurePushSubscription, removePushSubscription } from '../lib/api/push';
 import Toggle from '../components/common/Toggle';
@@ -294,7 +295,6 @@ function Email() {
   const { data } = useQuery({
     queryKey: ['me'],
     queryFn: async () => {
-      const { api } = await import('../lib/api');
       const res = await api.get<{ data: { email: string; name: string } | null }>('/api/me');
       return res.data.data;
     },

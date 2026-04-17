@@ -31,7 +31,7 @@ export async function ensurePushSubscription(vapidPublicKey: string): Promise<Pu
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
   if (Notification.permission === 'denied') return null;
 
-  let permission = Notification.permission;
+  let permission: NotificationPermission = Notification.permission;
   if (permission === 'default') {
     permission = await Notification.requestPermission();
   }
@@ -42,7 +42,7 @@ export async function ensurePushSubscription(vapidPublicKey: string): Promise<Pu
   if (!subscription) {
     subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey).buffer as ArrayBuffer,
     });
   }
   const json = subscription.toJSON();
