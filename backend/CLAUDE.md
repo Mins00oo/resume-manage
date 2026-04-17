@@ -47,6 +47,21 @@ backend/
 - 스키마 변경은 **반드시 새 버전 파일**(`V2__...`)로 추가. V1 수정 금지 (체크섬 오류 발생).
 - 개발 중 스키마 갈아엎고 싶으면 DB drop → recreate 후 재기동.
 
+## Git 커밋 규칙
+
+- 커밋은 **사용자가 요청할 때만** 수행한다. 자의적으로 커밋하지 않는다.
+- 커밋 메시지는 **헤더 + 본문** 으로만 구성한다. (footer 없음)
+- **헤더**: `타입: 간단한 제목` (한글)
+  - 타입: `feat`, `fix`, `refactor`, `style`, `docs`, `chore` 등
+- **본문**: 작업한 내용을 한글로 서술
+- 예시:
+  ```
+  feat: 이력서 백엔드 스키마 확장
+
+  - V2 마이그레이션: address_detail, employment_type 컬럼 추가
+  - CareerEmploymentType enum 신규 생성
+  ```
+
 ## 핵심 포인트
 
 - `ddl-auto: validate` — Hibernate 가 엔티티와 실제 스키마 일치 검증
