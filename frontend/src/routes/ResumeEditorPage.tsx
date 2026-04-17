@@ -302,7 +302,8 @@ export default function ResumeEditorPage() {
 
   return (
     <>
-      <div className="flex h-[calc(100dvh-56px)] md:h-[calc(100dvh-64px)]">
+      {/* 모바일: 헤더(56px) + 저장바(~56px) + 탭바(60px+safe-area) 제외한 높이 */}
+      <div className="flex h-[calc(100dvh-56px-60px-env(safe-area-inset-bottom,0px))] md:h-[calc(100dvh-64px)]">
         {/* ─── Left: form ─── */}
         <div className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 overflow-y-auto min-h-0 lg:pb-8">
@@ -671,8 +672,8 @@ export default function ResumeEditorPage() {
           </div>
           </div>
 
-          {/* Bottom bar (mobile) — in flow, scrolls with content */}
-          <div className="lg:hidden">
+          {/* Bottom bar (mobile) — below scroll area, always visible */}
+          <div className="shrink-0 lg:hidden">
             <ResumeBottomBar
               completion={0}
               onSave={handleSave}
