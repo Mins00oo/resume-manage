@@ -758,7 +758,7 @@ function FormField({ label, required, hint, children }: { label: string; require
 
 function ItemCard({ label, onRemove, children }: { label?: string; onRemove: () => void; children: React.ReactNode }) {
   return (
-    <div className="card p-5 mb-4 relative group overflow-hidden">
+    <div className="card p-5 mb-4 relative group">
       {label && (
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-[14px] font-bold text-[var(--color-text-primary)]">{label}</h3>
