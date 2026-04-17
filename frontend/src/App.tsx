@@ -7,6 +7,7 @@ import JobApplyCreatePage from './routes/JobApplyCreatePage';
 import JobApplyDetailPage from './routes/JobApplyDetailPage';
 import ResumesListPage from './routes/ResumesListPage';
 import ResumeEditorPage from './routes/ResumeEditorPage';
+import ResumePreviewPage from './routes/ResumePreviewPage';
 import CalendarPage from './routes/CalendarPage';
 import AppShell from './components/layout/AppShell';
 import ProtectedRoute from './components/layout/ProtectedRoute';
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/resumes" element={<ResumesListPage />} />
           <Route path="/resumes/new" element={<ResumeEditorPage />} />
           <Route path="/resumes/:id" element={<ResumeEditorPage />} />
+          <Route path="/resumes/:id/preview" element={<ResumePreviewPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
