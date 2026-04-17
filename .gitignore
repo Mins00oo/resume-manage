@@ -30,6 +30,9 @@ frontend/.DS_Store
 Thumbs.db
 desktop.ini
 
+# ===== Claude Code =====
+.claude/
+
 # ===== Environment / Secrets =====
 .env
 .env.local
