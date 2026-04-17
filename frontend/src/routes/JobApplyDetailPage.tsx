@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { jobApplyApi } from '../lib/api/jobApply';
+import { useToast } from '../components/common/Toast';
 import {
   stageMeta,
   toStage,
@@ -47,6 +48,7 @@ function companyColor(name: string): string {
 }
 
 export default function JobApplyDetailPage() {
+  const { toast, confirm } = useToast();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -74,7 +76,7 @@ export default function JobApplyDetailPage() {
       navigate('/applies');
     },
     onError: (err: Error) => {
-      alert(err.message || '삭제에 실패했습니다.');
+      toast(err.message || '삭제에 실패했습니다.', 'error');
     },
   });
 
@@ -87,7 +89,7 @@ export default function JobApplyDetailPage() {
       setStatusPickerOpen(false);
     },
     onError: (err: Error) => {
-      alert(err.message || '상태 변경에 실패했습니다.');
+      toast(err.message || '상태 변경에 실패했습니다.', 'error');
     },
   });
 
@@ -100,7 +102,7 @@ export default function JobApplyDetailPage() {
       setIsEditing(false);
     },
     onError: (err: Error) => {
-      alert(err.message || '수정에 실패했습니다.');
+      toast(err.message || '수정에 실패했습니다.', 'error');
     },
   });
 
@@ -227,10 +229,9 @@ export default function JobApplyDetailPage() {
               )}
               <button
                 type="button"
-                onClick={() => {
-                  if (window.confirm(`"${item.company}" 지원을 삭제할까요?`)) {
-                    deleteMutation.mutate();
-                  }
+                onClick={async () => {
+                  const ok = await confirm({ title: `"${item.company}" 지원을 삭제할까요?`, description: '삭제된 지원 내역은 복구할 수 없습니다.', confirmLabel: '삭제', variant: 'danger' });
+                  if (ok) deleteMutation.mutate();
                 }}
                 disabled={deleteMutation.isPending}
                 className="btn-ghost text-rose-600 hover:bg-rose-50 flex-1 md:flex-none"
@@ -357,7 +358,7 @@ export default function JobApplyDetailPage() {
               <div className="text-[15px] font-bold text-[var(--color-text-primary)]">메모</div>
               <button
                 type="button"
-                onClick={() => alert('AI 요약 기능은 준비 중이에요.')}
+                onClick={() => toast('AI 요약 기능은 준비 중이에요.', 'info')}
                 className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-indigo-600 hover:text-indigo-700"
               >
                 <IconSparkles className="w-3.5 h-3.5" />

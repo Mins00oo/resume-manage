@@ -32,11 +32,14 @@ export type ResumeBasicInfo = {
   email: string | null;
   phone: string | null;
   address: string | null;
+  addressDetail: string | null;
   shortIntro: string | null;
   militaryStatus: MilitaryStatus | null;
   disabilityStatus: boolean;
   veteranStatus: boolean;
   profileImageFileId: number | null;
+  careerDescriptionFileId: number | null;
+  portfolioFileId: number | null;
 };
 
 export type ResumeEducation = {
@@ -60,6 +63,7 @@ export type ResumeCareer = {
   startDate: string | null;
   endDate: string | null;
   isCurrent: boolean;
+  employmentType: CareerEmploymentType | null;
   responsibilities: string | null;
   orderIndex: number;
 };
@@ -158,11 +162,14 @@ export type ResumeBasicInfoRequest = {
   email?: string;
   phone?: string;
   address?: string;
+  addressDetail?: string;
   shortIntro?: string;
   militaryStatus?: MilitaryStatus | null;
   disabilityStatus?: boolean;
   veteranStatus?: boolean;
   profileImageFileId?: number | null;
+  careerDescriptionFileId?: number | null;
+  portfolioFileId?: number | null;
 };
 
 export type ResumeEducationRequest = {
@@ -177,6 +184,8 @@ export type ResumeEducationRequest = {
   orderIndex: number;
 };
 
+export type CareerEmploymentType = 'FULL_TIME' | 'CONTRACT' | 'INTERN' | 'FREELANCE' | 'DISPATCH' | 'PART_TIME';
+
 export type ResumeCareerRequest = {
   companyName?: string;
   position?: string;
@@ -184,6 +193,7 @@ export type ResumeCareerRequest = {
   startDate?: string | null;
   endDate?: string | null;
   isCurrent?: boolean;
+  employmentType?: CareerEmploymentType | null;
   responsibilities?: string;
   orderIndex: number;
 };

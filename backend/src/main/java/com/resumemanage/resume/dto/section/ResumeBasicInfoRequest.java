@@ -15,10 +15,13 @@ public record ResumeBasicInfoRequest(
         @Email @Size(max = 255) String email,
         @Size(max = 20) String phone,
         @Size(max = 300) String address,
+        @Size(max = 200) String addressDetail,
         @Size(max = 500) String shortIntro,
         MilitaryStatus militaryStatus,
         boolean disabilityStatus,
         boolean veteranStatus,
-        Long profileImageFileId
+        Long profileImageFileId,
+        Long careerDescriptionFileId,
+        Long portfolioFileId
 ) {
 }

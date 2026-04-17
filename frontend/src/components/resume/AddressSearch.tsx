@@ -8,6 +8,8 @@ declare global {
   }
 }
 
+import { useToast } from '../common/Toast';
+
 type Props = {
   value: string;
   onChange: (address: string) => void;
@@ -16,9 +18,10 @@ type Props = {
 };
 
 export default function AddressSearch({ value, onChange, detailValue, onDetailChange }: Props) {
+  const { toast } = useToast();
   const handleSearch = () => {
     if (!window.daum?.Postcode) {
-      alert('주소 검색 서비스를 불러오지 못했어요. 잠시 후 다시 시도해주세요.');
+      toast('주소 검색 서비스를 불러오지 못했어요. 잠시 후 다시 시도해주세요.', 'error');
       return;
     }
     new window.daum.Postcode({

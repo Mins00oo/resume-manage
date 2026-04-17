@@ -195,32 +195,6 @@ export default function ResumePreview({ doc }: Props) {
                   </li>
                 ))}
               </ul>
-              {prj.tech.length > 0 && (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '4pt',
-                    marginTop: '4pt',
-                  }}
-                >
-                  {prj.tech.map((t) => (
-                    <span
-                      key={t}
-                      style={{
-                        padding: '1pt 6pt',
-                        fontSize: '7.5pt',
-                        fontWeight: 600,
-                        color: accent,
-                        backgroundColor: `${accent}12`,
-                        borderRadius: '3pt',
-                      }}
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
           ))}
         </Section>
@@ -251,39 +225,6 @@ export default function ResumePreview({ doc }: Props) {
               </div>
             </div>
           ))}
-        </Section>
-      )}
-
-      {/* ---------- Skills ---------- */}
-      {doc.skills.length > 0 && (
-        <Section title="기술 스택" accent={accent} template={doc.template}>
-          <div>
-            {doc.skills.map((group) => (
-              <div key={group.id} style={{ marginBottom: '5pt', display: 'flex', gap: '8pt' }}>
-                <div
-                  style={{
-                    width: '60pt',
-                    fontWeight: 700,
-                    fontSize: '9pt',
-                    color: '#475569',
-                    flexShrink: 0,
-                  }}
-                >
-                  {group.category}
-                </div>
-                <div
-                  style={{
-                    flex: 1,
-                    fontSize: '9pt',
-                    color: '#334155',
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {group.items.join(' · ')}
-                </div>
-              </div>
-            ))}
-          </div>
         </Section>
       )}
 

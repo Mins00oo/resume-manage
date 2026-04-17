@@ -1,5 +1,6 @@
 package com.resumemanage.resume.dto.section;
 
+import com.resumemanage.resume.domain.CareerEmploymentType;
 import com.resumemanage.resume.domain.ResumeCareer;
 
 import java.time.LocalDate;
@@ -13,6 +14,7 @@ public record ResumeCareerResponse(
         LocalDate endDate,
         boolean isCurrent,
         String responsibilities,
+        CareerEmploymentType employmentType,
         short orderIndex
 ) {
     public static ResumeCareerResponse from(ResumeCareer entity) {
@@ -25,6 +27,7 @@ public record ResumeCareerResponse(
                 entity.getEndDate(),
                 entity.isCurrent(),
                 entity.getResponsibilities(),
+                entity.getEmploymentType(),
                 entity.getOrderIndex()
         );
     }

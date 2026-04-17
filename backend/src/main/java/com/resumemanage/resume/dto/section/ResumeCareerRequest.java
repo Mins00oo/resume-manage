@@ -1,5 +1,6 @@
 package com.resumemanage.resume.dto.section;
 
+import com.resumemanage.resume.domain.CareerEmploymentType;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
@@ -12,6 +13,7 @@ public record ResumeCareerRequest(
         LocalDate endDate,
         boolean isCurrent,
         String responsibilities,
+        CareerEmploymentType employmentType,
         short orderIndex
 ) {
 }

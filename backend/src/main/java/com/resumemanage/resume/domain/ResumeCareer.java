@@ -43,13 +43,18 @@ public class ResumeCareer {
     @Column(columnDefinition = "TEXT")
     private String responsibilities;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "employment_type", length = 20)
+    private CareerEmploymentType employmentType;
+
     @Column(name = "order_index", nullable = false)
     private short orderIndex;
 
     @Builder
     private ResumeCareer(Resume resume, String companyName, String position, String department,
                          LocalDate startDate, LocalDate endDate, boolean isCurrent,
-                         String responsibilities, short orderIndex) {
+                         String responsibilities, CareerEmploymentType employmentType,
+                         short orderIndex) {
         this.resume = resume;
         this.companyName = companyName;
         this.position = position;
@@ -58,12 +63,13 @@ public class ResumeCareer {
         this.endDate = endDate;
         this.isCurrent = isCurrent;
         this.responsibilities = responsibilities;
+        this.employmentType = employmentType;
         this.orderIndex = orderIndex;
     }
 
     public void update(String companyName, String position, String department,
                        LocalDate startDate, LocalDate endDate, boolean isCurrent,
-                       String responsibilities) {
+                       String responsibilities, CareerEmploymentType employmentType) {
         this.companyName = companyName;
         this.position = position;
         this.department = department;
@@ -71,6 +77,7 @@ public class ResumeCareer {
         this.endDate = endDate;
         this.isCurrent = isCurrent;
         this.responsibilities = responsibilities;
+        this.employmentType = employmentType;
     }
 
     public void changeOrder(short orderIndex) {

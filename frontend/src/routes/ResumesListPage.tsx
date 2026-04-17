@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '../lib/queryClient';
 import { resumeApi } from '../lib/api/resume';
+import { useToast } from '../components/common/Toast';
 import type { ResumeSummary } from '../types/resume';
 import {
   IconPlus,
@@ -28,6 +29,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function ResumesListPage() {
+  const { toast, confirm } = useToast();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('updatedAt');
@@ -61,13 +63,13 @@ export default function ResumesListPage() {
       queryClient.invalidateQueries({ queryKey: ['resumes'] });
       navigate(`/resumes/${id}`);
     },
-    onError: (err) => alert(getErrorMessage(err)),
+    onError: (err) => toast(getErrorMessage(err), 'error'),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => resumeApi.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['resumes'] }),
-    onError: (err) => alert(getErrorMessage(err)),
+    onError: (err) => toast(getErrorMessage(err), 'error'),
   });
 
   const duplicateMutation = useMutation({
@@ -76,24 +78,24 @@ export default function ResumesListPage() {
       queryClient.invalidateQueries({ queryKey: ['resumes'] });
       navigate(`/resumes/${newId}`);
     },
-    onError: (err) => alert(getErrorMessage(err)),
+    onError: (err) => toast(getErrorMessage(err), 'error'),
   });
 
   const setMasterMutation = useMutation({
     mutationFn: (id: number) => resumeApi.setMaster(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['resumes'] }),
-    onError: (err) => alert(getErrorMessage(err)),
+    onError: (err) => toast(getErrorMessage(err), 'error'),
   });
 
   const unsetMasterMutation = useMutation({
     mutationFn: (id: number) => resumeApi.unsetMaster(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['resumes'] }),
-    onError: (err) => alert(getErrorMessage(err)),
+    onError: (err) => toast(getErrorMessage(err), 'error'),
   });
 
   const downloadPdfMutation = useMutation({
     mutationFn: (id: number) => resumeApi.downloadPdf(id),
-    onError: (err) => alert(getErrorMessage(err)),
+    onError: (err) => toast(getErrorMessage(err), 'error'),
   });
 
   const handleCreate = () => {
@@ -193,10 +195,9 @@ export default function ResumesListPage() {
               resume={resume}
               onClick={() => navigate(`/resumes/${resume.id}`)}
               onDuplicate={() => duplicateMutation.mutate(resume.id)}
-              onDelete={() => {
-                if (confirm(`"${resume.title}" 이력서를 삭제할까요?`)) {
-                  deleteMutation.mutate(resume.id);
-                }
+              onDelete={async () => {
+                const ok = await confirm({ title: `"${resume.title}" 이력서를 삭제할까요?`, description: '삭제된 이력서는 복구할 수 없습니다.', confirmLabel: '삭제', variant: 'danger' });
+                if (ok) deleteMutation.mutate(resume.id);
               }}
               onSetMaster={() => setMasterMutation.mutate(resume.id)}
               onUnsetMaster={() => unsetMasterMutation.mutate(resume.id)}

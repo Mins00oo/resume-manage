@@ -262,6 +262,120 @@ body {
   animation: fade-up 0.4s ease-out both;
 }
 
+/* ---------- Rallit-style Month/Year Picker ---------- */
+
+/* Reset all react-datepicker defaults */
+.rallit-datepicker .react-datepicker {
+  font-family: inherit !important;
+  background-color: var(--color-bg-surface) !important;
+  border: 1px solid var(--color-border-default) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
+  padding: 8px !important;
+  color: var(--color-text-primary) !important;
+}
+
+.rallit-datepicker .react-datepicker__triangle {
+  display: none !important;
+}
+
+.rallit-datepicker .react-datepicker__header {
+  background: transparent !important;
+  border-bottom: none !important;
+  padding: 8px 4px 4px !important;
+}
+
+.rallit-datepicker .react-datepicker__current-month,
+.rallit-datepicker .react-datepicker-year-header {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: var(--color-text-primary) !important;
+  background: transparent !important;
+}
+
+.rallit-datepicker .react-datepicker__navigation {
+  top: 16px !important;
+}
+
+.rallit-datepicker .react-datepicker__navigation-icon::before {
+  border-color: var(--color-text-secondary) !important;
+  border-width: 2px 2px 0 0 !important;
+  width: 8px !important;
+  height: 8px !important;
+}
+
+.rallit-datepicker .react-datepicker__navigation:hover *::before {
+  border-color: var(--color-text-primary) !important;
+}
+
+.rallit-datepicker .react-datepicker__month {
+  margin: 0 !important;
+  background: transparent !important;
+}
+
+.rallit-datepicker .react-datepicker__month-wrapper {
+  display: flex !important;
+}
+
+.rallit-datepicker .react-datepicker__month-text,
+.rallit-datepicker .react-datepicker__month-text span {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 72px !important;
+  height: 40px !important;
+  margin: 2px !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: var(--color-text-primary) !important;
+  background: transparent !important;
+  transition: background-color 0.15s, color 0.15s !important;
+}
+
+.rallit-datepicker .react-datepicker__month-text span {
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+}
+
+.rallit-datepicker .react-datepicker__month-text:hover {
+  background-color: var(--color-bg-muted) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.rallit-datepicker .react-datepicker__month-text--selected,
+.rallit-datepicker .react-datepicker__month-text--selected span,
+.rallit-datepicker .react-datepicker__month-text--keyboard-selected,
+.rallit-datepicker .react-datepicker__month-text--keyboard-selected span {
+  background-color: #10b981 !important;
+  color: white !important;
+  font-weight: 700 !important;
+}
+
+.rallit-datepicker .react-datepicker__month-text--selected:hover,
+.rallit-datepicker .react-datepicker__month-text--keyboard-selected:hover {
+  background-color: #059669 !important;
+  color: white !important;
+}
+
+.rallit-datepicker .react-datepicker__month-text--disabled,
+.rallit-datepicker .react-datepicker__month-text--disabled span {
+  color: var(--color-text-quaternary) !important;
+  cursor: not-allowed !important;
+}
+
+.rallit-datepicker .react-datepicker__month-text--disabled:hover {
+  background-color: transparent !important;
+}
+
+/* Dark mode */
+.dark .rallit-datepicker .react-datepicker {
+  background-color: var(--color-bg-elevated) !important;
+  border-color: var(--color-border-default) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
+}
+
 /* ---------- A4 preview ---------- */
 
 .a4-preview {

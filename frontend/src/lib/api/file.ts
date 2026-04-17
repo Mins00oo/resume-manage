@@ -27,4 +27,9 @@ export const fileApi = {
     api.delete<ApiResponse<void>>(`/api/files/${id}`).then(() => undefined),
   downloadUrl: (id: number): string =>
     `${import.meta.env.VITE_API_BASE_URL}/api/files/${id}`,
+  /** Fetch file as blob URL (includes JWT auth header) */
+  fetchBlobUrl: async (id: number): Promise<string> => {
+    const res = await api.get(`/api/files/${id}`, { responseType: 'blob' });
+    return URL.createObjectURL(res.data as Blob);
+  },
 };

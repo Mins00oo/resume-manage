@@ -512,7 +512,6 @@ export type ResumeDocument = {
   experiences: Experience[];
   projects: Project[];
   education: Education[];
-  skills: SkillGroup[];
   certifications: Certification[];
   languages: Language[];
 };
@@ -534,23 +533,18 @@ export type Project = {
   period: string;
   description: string;
   bullets: string[];
-  tech: string[];
   link?: string;
 };
 
 export type Education = {
   id: string;
-  school: string;
-  degree: string;
+  degreeType: string;       // HIGH_SCHOOL, ASSOCIATE, BACHELOR, MASTER, DOCTOR
+  school: string;            // 소속/기관
+  degree: string;            // 전공명/전공 계열
+  graduationStatus: string;  // ENROLLED, GRADUATED, WITHDRAWN, LEAVE_OF_ABSENCE
   startDate: string;
   endDate: string;
   description?: string;
-};
-
-export type SkillGroup = {
-  id: string;
-  category: string;
-  items: string[];
 };
 
 export type Certification = {
@@ -625,7 +619,6 @@ export const mockResumeDocument: ResumeDocument = {
         'Offline-first PWA 설계, Service Worker 로 iOS 푸시까지 구현',
         '3개 LLM (Claude/GPT/Gemini) 파이프라인을 백엔드에서 직렬 호출',
       ],
-      tech: ['React 19', 'TypeScript', 'Spring Boot', 'PostgreSQL'],
       link: 'github.com/minsoo-kim/resume-manage',
     },
     {
@@ -638,34 +631,18 @@ export const mockResumeDocument: ResumeDocument = {
         'Headless 컴포넌트 구조로 런타임 스타일 오버라이드 지원',
         'Visual Regression Test 환경 구축으로 릴리스 신뢰성 확보',
       ],
-      tech: ['React', 'Stitches', 'Storybook', 'Chromatic'],
     },
   ],
   education: [
     {
       id: 'edu1',
+      degreeType: 'BACHELOR',
       school: '서울대학교',
-      degree: '컴퓨터공학부 학사',
-      startDate: '2015.03',
-      endDate: '2020.02',
+      degree: '컴퓨터공학부',
+      graduationStatus: 'GRADUATED',
+      startDate: '2015-03',
+      endDate: '2020-02',
       description: 'GPA 3.8/4.3',
-    },
-  ],
-  skills: [
-    {
-      id: 'sk1',
-      category: '언어',
-      items: ['TypeScript', 'JavaScript', 'Python', 'Java'],
-    },
-    {
-      id: 'sk2',
-      category: '프론트엔드',
-      items: ['React', 'Next.js', 'Redux', 'Zustand', 'TanStack Query'],
-    },
-    {
-      id: 'sk3',
-      category: '툴링',
-      items: ['Vite', 'Webpack', 'Turborepo', 'Playwright'],
     },
   ],
   certifications: [

@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { IconPlus, IconTrash } from '../icons/Icons';
+import { useToast } from '../common/Toast';
 
 type Props = {
   imageUrl?: string | null;
@@ -9,6 +10,7 @@ type Props = {
 };
 
 export default function PhotoUpload({ imageUrl, onUpload, onRemove, disabled }: Props) {
+  const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = () => {
@@ -19,7 +21,7 @@ export default function PhotoUpload({ imageUrl, onUpload, onRemove, disabled }: 
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        alert('5MB 이하의 이미지만 업로드할 수 있어요.');
+        toast('5MB 이하의 이미지만 업로드할 수 있어요.', 'warning');
         return;
       }
       onUpload(file);
