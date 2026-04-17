@@ -1,4 +1,4 @@
-import type { ResumeDocument, Experience, Project, Education, SkillGroup, Certification, Language } from '../../mocks/data';
+import type { ResumeDocument, Experience, Project, Education, Certification, Language } from '../../mocks/data';
 import { IconPlus, IconTrash } from '../icons/Icons';
 
 type SectionKey =
@@ -7,7 +7,6 @@ type SectionKey =
   | 'experiences'
   | 'projects'
   | 'education'
-  | 'skills'
   | 'certifications'
   | 'languages';
 
@@ -23,7 +22,6 @@ export default function ResumeSectionEditor({ doc, setDoc, section }: Props) {
   if (section === 'experiences') return <ExperienceEditor doc={doc} setDoc={setDoc} />;
   if (section === 'projects') return <ProjectEditor doc={doc} setDoc={setDoc} />;
   if (section === 'education') return <EducationEditor doc={doc} setDoc={setDoc} />;
-  if (section === 'skills') return <SkillsEditor doc={doc} setDoc={setDoc} />;
   if (section === 'certifications') return <CertEditor doc={doc} setDoc={setDoc} />;
   if (section === 'languages') return <LangEditor doc={doc} setDoc={setDoc} />;
   return null;
@@ -323,7 +321,6 @@ function ProjectEditor({ doc, setDoc }: { doc: ResumeDocument; setDoc: (d: Resum
       period: '',
       description: '',
       bullets: [''],
-      tech: [],
     };
     setDoc({ ...doc, projects: [...doc.projects, n] });
   };
@@ -373,21 +370,6 @@ function ProjectEditor({ doc, setDoc }: { doc: ResumeDocument; setDoc: (d: Resum
               className="input-base"
               value={prj.description}
               onChange={(e) => update(prj.id, { description: e.target.value })}
-            />
-          </div>
-          <div className="mt-3">
-            <Label>기술 스택 (쉼표로 구분)</Label>
-            <input
-              className="input-base"
-              value={prj.tech.join(', ')}
-              onChange={(e) =>
-                update(prj.id, {
-                  tech: e.target.value
-                    .split(',')
-                    .map((t) => t.trim())
-                    .filter(Boolean),
-                })
-              }
             />
           </div>
           <div className="mt-3">
@@ -441,8 +423,10 @@ function EducationEditor({ doc, setDoc }: { doc: ResumeDocument; setDoc: (d: Res
   const add = () => {
     const n: Education = {
       id: `edu${Date.now()}`,
+      degreeType: '',
       school: '',
       degree: '',
+      graduationStatus: '',
       startDate: '',
       endDate: '',
     };
@@ -482,54 +466,6 @@ function EducationEditor({ doc, setDoc }: { doc: ResumeDocument; setDoc: (d: Res
               className="input-base"
               value={ed.description ?? ''}
               onChange={(e) => update(ed.id, { description: e.target.value })}
-            />
-          </div>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-/* ---------- Skills ---------- */
-
-function SkillsEditor({ doc, setDoc }: { doc: ResumeDocument; setDoc: (d: ResumeDocument) => void }) {
-  const add = () => {
-    const n: SkillGroup = { id: `sk${Date.now()}`, category: '', items: [] };
-    setDoc({ ...doc, skills: [...doc.skills, n] });
-  };
-  const update = (id: string, patch: Partial<SkillGroup>) =>
-    setDoc({ ...doc, skills: doc.skills.map((s) => (s.id === id ? { ...s, ...patch } : s)) });
-  const remove = (id: string) =>
-    setDoc({ ...doc, skills: doc.skills.filter((s) => s.id !== id) });
-
-  return (
-    <div>
-      <SectionHeader title="기술 스택" subtitle="카테고리별로 그룹화해보세요" onAdd={add} />
-      {doc.skills.map((group) => (
-        <Card key={group.id} onRemove={() => remove(group.id)}>
-          <div>
-            <Label>카테고리</Label>
-            <input
-              className="input-base"
-              value={group.category}
-              onChange={(e) => update(group.id, { category: e.target.value })}
-              placeholder="예: 프론트엔드"
-            />
-          </div>
-          <div className="mt-3">
-            <Label>스킬 (쉼표로 구분)</Label>
-            <input
-              className="input-base"
-              value={group.items.join(', ')}
-              onChange={(e) =>
-                update(group.id, {
-                  items: e.target.value
-                    .split(',')
-                    .map((t) => t.trim())
-                    .filter(Boolean),
-                })
-              }
-              placeholder="React, TypeScript, Next.js"
             />
           </div>
         </Card>
