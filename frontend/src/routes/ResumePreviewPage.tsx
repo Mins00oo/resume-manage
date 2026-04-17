@@ -95,17 +95,24 @@ export default function ResumePreviewPage() {
 
   const doc = detailToDocument(detail);
 
+  const handleDownloadPdf = () => {
+    const prevTitle = document.title;
+    document.title = doc.title || '이력서';
+    window.print();
+    document.title = prevTitle;
+  };
+
   return (
     <div className="min-h-screen bg-[var(--color-bg-muted)]">
       {/* Toolbar */}
       <div
-        className="sticky top-0 z-10 flex items-center justify-between px-4 py-2 backdrop-blur-lg"
+        className="sticky top-0 z-10 flex items-center justify-between px-4 py-2 backdrop-blur-lg print:hidden"
         style={{
           background: 'color-mix(in srgb, var(--color-bg-surface) 85%, transparent)',
           borderBottom: '1px solid var(--color-border-subtle)',
         }}
       >
-        <span className="text-[13px] font-semibold text-[var(--color-text-primary)]">
+        <span className="text-[13px] font-semibold text-[var(--color-text-primary)] truncate">
           {doc.title || '제목 없음'} — 미리보기
         </span>
         <div className="flex items-center gap-2">
@@ -126,12 +133,27 @@ export default function ResumePreviewPage() {
           >
             +
           </button>
+          <div className="w-px h-5 bg-[var(--color-border-subtle)] mx-1" />
+          <button
+            type="button"
+            onClick={handleDownloadPdf}
+            className="h-8 px-3 rounded-lg text-[12px] font-semibold text-white bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5 transition-colors"
+            title="PDF로 저장"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            PDF
+          </button>
         </div>
       </div>
 
       {/* Preview */}
-      <div className="flex justify-center p-6">
-        <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}>
+      <div className="flex justify-center p-6 print:p-0">
+        <div
+          className="print:!scale-100"
+          style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
+        >
           <ResumePreview doc={doc} />
         </div>
       </div>

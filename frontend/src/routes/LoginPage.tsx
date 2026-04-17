@@ -48,9 +48,6 @@ export default function LoginPage() {
             <div className="text-[15px] font-bold tracking-tight">
               Resume Manage
             </div>
-            <div className="text-[10px] text-white/40 font-medium tracking-[0.14em] uppercase">
-              Career workspace
-            </div>
           </div>
         </div>
         <div className="text-xs text-white/40 tracking-wide hidden sm:block">
@@ -63,27 +60,19 @@ export default function LoginPage() {
         <div className="w-full max-w-6xl grid lg:grid-cols-[1.25fr_1fr] gap-16 items-center">
           {/* Hero */}
           <div className="space-y-10">
-            <div className="space-y-7">
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] tracking-wide text-white/75 backdrop-blur">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
-                </span>
-                Resume · Applies · Interviews — all in one place
-              </span>
-
-              <h1 className="text-[2.8rem] lg:text-[3.4rem] font-bold leading-[1.05] tracking-[-0.03em]">
-                커리어, 흩어지지 않게.
-                <br />
+            <div className="space-y-6">
+              <h1 className="text-[2.25rem] sm:text-[2.8rem] lg:text-[3.4rem] font-bold leading-[1.1] tracking-[-0.03em]">
+                이력서.{' '}
                 <span className="bg-gradient-to-r from-indigo-200 via-fuchsia-200 to-sky-200 bg-clip-text text-transparent">
-                  한 워크스페이스에서.
+                  지원.{' '}
                 </span>
+                일정.
               </h1>
 
-              <p className="text-[17px] text-white/55 leading-[1.65] max-w-xl">
-                이력서 · 지원 트래킹 · 마감 · 면접 · AI 자소서 교정까지,
+              <p className="text-[15px] sm:text-[17px] text-white/55 leading-[1.6] max-w-xl">
+                입사 지원의 모든 순간을
                 <br />
-                이직 준비에 필요한 것들만 깔끔하게.
+                하나의 앱에 담았어요.
               </p>
             </div>
 

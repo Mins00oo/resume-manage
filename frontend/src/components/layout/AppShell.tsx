@@ -11,9 +11,7 @@ import {
   IconCalendar,
   IconSettings,
   IconLogout,
-  IconSearch,
   IconBell,
-  IconPlus,
   IconSun,
   IconMoon,
   IconMenu,
@@ -71,7 +69,7 @@ export default function AppShell() {
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   const page = matchPageTitle(location.pathname);
-  const isImmersive = /^\/resumes\/\d+/.test(location.pathname);
+  const isImmersive = /^\/resumes\/(new|\d+)/.test(location.pathname);
 
   const sidebarWidth = collapsed ? 'w-16' : 'w-64';
   const mainPadding = collapsed ? 'md:pl-16' : 'md:pl-64';
@@ -111,7 +109,6 @@ export default function AppShell() {
           {!collapsed && (
             <div className="leading-tight flex-1 min-w-0">
               <div className="text-[15px] font-bold tracking-tight text-[var(--color-text-primary)]">Resume Manage</div>
-              <div className="text-[10.5px] text-[var(--color-text-tertiary)] font-medium tracking-wide uppercase">Career workspace</div>
             </div>
           )}
           {/* Collapse toggle — desktop only */}
@@ -134,35 +131,6 @@ export default function AppShell() {
             <IconX className="w-5 h-5" />
           </button>
         </div>
-
-        {/* Quick add */}
-        {!collapsed && (
-          <div className="px-4 pt-4">
-            <button
-              type="button"
-              onClick={() => { navigate('/applies/new'); closeSidebar(); }}
-              className="w-full group flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 shadow-md shadow-indigo-600/20 active:scale-[0.99] transition-all"
-            >
-              <span className="flex items-center gap-2">
-                <IconPlus className="w-4 h-4" />
-                <span>새 지원 추가</span>
-              </span>
-              <span className="text-[10px] font-mono text-white/80 bg-white/10 border border-white/20 rounded px-1.5 py-0.5 hidden md:inline">⌘N</span>
-            </button>
-          </div>
-        )}
-        {collapsed && (
-          <div className="px-2 pt-4">
-            <button
-              type="button"
-              onClick={() => { navigate('/applies/new'); closeSidebar(); }}
-              className="w-full flex items-center justify-center py-2.5 rounded-xl text-white bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 shadow-md shadow-indigo-600/20 transition-all"
-              title="새 지원 추가"
-            >
-              <IconPlus className="w-4 h-4" />
-            </button>
-          </div>
-        )}
 
         {/* Nav */}
         <nav className={cn('flex-1 pt-5 pb-4 space-y-0.5 overflow-y-auto', collapsed ? 'px-2' : 'px-3')}>
@@ -246,7 +214,11 @@ export default function AppShell() {
       </aside>
 
       {/* Main */}
-      <main className={cn('min-h-screen flex flex-col pb-16 md:pb-0 transition-all duration-300', mainPadding)}>
+      <main className={cn(
+        'flex flex-col transition-all duration-300',
+        isImmersive ? 'h-[100dvh] md:h-screen pb-[calc(60px+env(safe-area-inset-bottom,0px))] md:pb-0' : 'min-h-screen pb-16 md:pb-0',
+        mainPadding,
+      )}>
         {/* Top bar */}
         <header
           className="sticky top-0 z-20 backdrop-blur-lg"
@@ -271,22 +243,6 @@ export default function AppShell() {
               </div>
             </div>
             <div className="flex items-center gap-1.5 md:gap-2">
-              <div className="relative w-72 hidden md:block">
-                <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-tertiary)]" />
-                <input
-                  type="text"
-                  placeholder="회사, 포지션, 태그 검색…"
-                  className="w-full pl-9 pr-14 py-2 text-[13px] rounded-lg transition-all placeholder:text-[var(--color-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
-                  style={{ background: 'var(--color-bg-muted)', color: 'var(--color-text-primary)', border: '1px solid transparent' }}
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => toast('검색 기능은 준비 중이에요.', 'info')}
-                className="md:hidden w-9 h-9 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
-              >
-                <IconSearch className="w-[18px] h-[18px]" />
-              </button>
               <button
                 type="button"
                 onClick={toggleTheme}
@@ -307,8 +263,13 @@ export default function AppShell() {
           </div>
         </header>
 
-        <div className={cn('flex-1', isImmersive ? '' : 'px-4 md:px-8 py-6 md:py-8')}>
-          <div className={cn(isImmersive ? '' : 'max-w-[1360px] mx-auto animate-fade-up')}>
+        <div className={cn(
+          'flex-1',
+          isImmersive ? 'flex flex-col min-h-0 overflow-hidden' : 'px-4 md:px-8 py-6 md:py-8',
+        )}>
+          <div className={cn(
+            isImmersive ? 'flex-1 flex flex-col min-h-0' : 'max-w-[1360px] mx-auto animate-fade-up',
+          )}>
             <Outlet />
           </div>
         </div>

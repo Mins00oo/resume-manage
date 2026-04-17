@@ -122,7 +122,6 @@ export default function ResumeEditorPage() {
 
   const [doc, setDoc] = useState<ResumeDocument>(emptyDocument());
   const [saving, setSaving] = useState(false);
-  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFileId, setPhotoFileId] = useState<number | null>(null);
   const [addressMain, setAddressMain] = useState('');
@@ -302,8 +301,7 @@ export default function ResumeEditorPage() {
 
   return (
     <>
-      {/* 모바일: 헤더(56px) + 저장바(~56px) + 탭바(60px+safe-area) 제외한 높이 */}
-      <div className="flex h-[calc(100dvh-56px-60px-env(safe-area-inset-bottom,0px))] md:h-[calc(100dvh-64px)]">
+      <div className="flex flex-1 min-h-0">
         {/* ─── Left: form ─── */}
         <div className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 overflow-y-auto min-h-0 lg:pb-8">
@@ -679,8 +677,7 @@ export default function ResumeEditorPage() {
               onSave={handleSave}
               saving={saving}
               saved={false}
-              onSettings={() => setMobilePreviewOpen(true)}
-              onMore={() => handlePreview()}
+              onPreview={handlePreview}
             />
           </div>
         </div>
@@ -701,22 +698,6 @@ export default function ResumeEditorPage() {
         </div>
       </div>
 
-      {/* Mobile preview modal */}
-      {mobilePreviewOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex flex-col lg:hidden">
-          <div className="flex items-center justify-between px-4 py-3 bg-[var(--color-bg-surface)] border-b border-[var(--color-border-subtle)]">
-            <span className="text-[14px] font-bold text-[var(--color-text-primary)]">미리보기</span>
-            <button type="button" onClick={() => setMobilePreviewOpen(false)} className="text-[13px] font-semibold text-indigo-600">닫기</button>
-          </div>
-          <div className="flex-1 overflow-auto bg-[var(--color-bg-muted)] p-4 flex justify-center">
-            <div style={{ transform: 'scale(0.5)', transformOrigin: 'top center' }}>
-              <div className="text-center py-12 text-[var(--color-text-tertiary)]">
-                <p>미리보기를 보려면 저장 후 미리보기 버튼을 눌러주세요.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
