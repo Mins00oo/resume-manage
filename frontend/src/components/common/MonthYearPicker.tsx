@@ -59,6 +59,9 @@ export default function MonthYearPicker({
       minDate={parseYearMonth(minDate ?? '') ?? undefined}
       maxDate={parseYearMonth(maxDate ?? '') ?? undefined}
       popperClassName="rallit-datepicker"
+      popperPlacement="bottom-start"
+      enableTabLoop={false}
+      portalId="datepicker-portal"
       renderMonthContent={(_month, shortMonth) => (
         <span style={{ color: 'inherit' }}>{shortMonth}</span>
       )}
