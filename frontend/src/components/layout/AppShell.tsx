@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
+import { useToast } from '../common/Toast';
 import { useThemeStore } from '../../store/themeStore';
 import { mockMe } from '../../mocks/data';
 import {
@@ -50,6 +51,7 @@ export default function AppShell() {
   const theme = useThemeStore((s) => s.theme);
   const toggleTheme = useThemeStore((s) => s.toggle);
 
+  const { toast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => {
     try { return localStorage.getItem('sidebarCollapsed') === 'true'; } catch { return false; }
@@ -112,6 +114,17 @@ export default function AppShell() {
               <div className="text-[10.5px] text-[var(--color-text-tertiary)] font-medium tracking-wide uppercase">Career workspace</div>
             </div>
           )}
+          {/* Collapse toggle — desktop only */}
+          <button
+            type="button"
+            onClick={() => setCollapsed((c) => !c)}
+            className="hidden md:flex w-8 h-8 rounded-lg text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] items-center justify-center transition-colors shrink-0"
+            title={collapsed ? '사이드바 펼치기' : '사이드바 접기'}
+          >
+            <svg className={cn('w-4 h-4 transition-transform', collapsed ? 'rotate-180' : '')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            </svg>
+          </button>
           {/* Close button — mobile only */}
           <button
             type="button"
@@ -190,7 +203,7 @@ export default function AppShell() {
           )}
           <button
             type="button"
-            onClick={() => alert('설정 페이지는 준비 중이에요.')}
+            onClick={() => toast('설정 페이지는 준비 중이에요.', 'info')}
             title={collapsed ? '설정' : undefined}
             className={cn(
               'w-full flex items-center rounded-xl text-[13.5px] font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)] transition-all',
@@ -201,20 +214,6 @@ export default function AppShell() {
             {!collapsed && <span>설정</span>}
           </button>
         </nav>
-
-        {/* Collapse toggle — desktop only */}
-        <div className="hidden md:flex justify-center py-2 border-t border-[var(--color-border-subtle)]">
-          <button
-            type="button"
-            onClick={() => setCollapsed((c) => !c)}
-            className="w-8 h-8 rounded-lg text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
-            title={collapsed ? '사이드바 펼치기' : '사이드바 접기'}
-          >
-            <svg className={cn('w-4 h-4 transition-transform', collapsed ? 'rotate-180' : '')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-            </svg>
-          </button>
-        </div>
 
         {/* User card */}
         <div className="p-3" style={{ borderTop: '1px solid var(--color-border-subtle)' }}>
@@ -283,7 +282,7 @@ export default function AppShell() {
               </div>
               <button
                 type="button"
-                onClick={() => alert('검색 기능은 준비 중이에요.')}
+                onClick={() => toast('검색 기능은 준비 중이에요.', 'info')}
                 className="md:hidden w-9 h-9 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
               >
                 <IconSearch className="w-[18px] h-[18px]" />
@@ -298,7 +297,7 @@ export default function AppShell() {
               </button>
               <button
                 type="button"
-                onClick={() => alert('알림 기능은 준비 중이에요.')}
+                onClick={() => toast('알림 기능은 준비 중이에요.', 'info')}
                 className="relative w-9 h-9 md:w-10 md:h-10 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
               >
                 <IconBell className="w-[18px] h-[18px]" />

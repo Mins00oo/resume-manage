@@ -14,6 +14,7 @@ import ResumeBottomBar from '../components/resume/ResumeBottomBar';
 import ResumeSidePanel from '../components/resume/ResumeSidePanel';
 import PdfUploadSection from '../components/resume/PdfUploadSection';
 import MonthYearPicker from '../components/common/MonthYearPicker';
+import { useToast } from '../components/common/Toast';
 
 /* ─── constants ─── */
 
@@ -113,6 +114,7 @@ function emptyDocument(): ResumeDocument {
 /* ─── page ─── */
 
 export default function ResumeEditorPage() {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const { id: idParam } = useParams<{ id: string }>();
   const isNew = !idParam || idParam === 'new';
@@ -229,7 +231,7 @@ export default function ResumeEditorPage() {
       queryClient.invalidateQueries({ queryKey: ['resume', id] });
       queryClient.invalidateQueries({ queryKey: ['resumes'] });
     } catch (err) {
-      alert(getErrorMessage(err));
+      toast(getErrorMessage(err), 'error');
     } finally {
       setSaving(false);
     }
@@ -241,7 +243,7 @@ export default function ResumeEditorPage() {
       const result = await fileApi.upload(file);
       setPhotoFileId(result.id);
       setPhotoPreview(URL.createObjectURL(file));
-    } catch { alert('사진 업로드에 실패했어요.'); }
+    } catch { toast('사진 업로드에 실패했어요.', 'error'); }
   };
   const handlePhotoRemove = () => { setPhotoFileId(null); setPhotoPreview(null); };
 
@@ -285,7 +287,7 @@ export default function ResumeEditorPage() {
     if (resumeId) {
       window.open(`/resumes/${resumeId}/preview`, 'resume-preview', 'width=900,height=1200,scrollbars=yes');
     } else {
-      alert('먼저 이력서를 저장해주세요.');
+      toast('먼저 이력서를 저장해주세요.', 'warning');
     }
   };
 

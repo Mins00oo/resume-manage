@@ -5,11 +5,14 @@ import './index.css';
 import './store/themeStore'; // side-effect: sync DOM theme class
 import App from './App.tsx';
 import { queryClient } from './lib/queryClient';
+import { ToastProvider } from './components/common/Toast';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <ToastProvider>
+        <App />
+      </ToastProvider>
     </QueryClientProvider>
   </StrictMode>,
 );

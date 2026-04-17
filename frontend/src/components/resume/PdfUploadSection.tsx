@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { IconPlus, IconTrash } from '../icons/Icons';
 import { fileApi } from '../../lib/api/file';
+import { useToast } from '../common/Toast';
 
 type Props = {
   label: string;
@@ -14,6 +15,7 @@ type Props = {
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
 export default function PdfUploadSection({ label, hint, fileId, fileName, onFileChange, disabled }: Props) {
+  const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = () => {
@@ -25,13 +27,13 @@ export default function PdfUploadSection({ label, hint, fileId, fileName, onFile
     if (!file) return;
 
     if (file.type !== 'application/pdf') {
-      alert('PDF 파일만 업로드할 수 있어요.');
+      toast('PDF 파일만 업로드할 수 있어요.', 'warning');
       e.target.value = '';
       return;
     }
 
     if (file.size > MAX_SIZE) {
-      alert('10MB 이하의 파일만 업로드할 수 있어요.');
+      toast('10MB 이하의 파일만 업로드할 수 있어요.', 'warning');
       e.target.value = '';
       return;
     }
@@ -40,7 +42,7 @@ export default function PdfUploadSection({ label, hint, fileId, fileName, onFile
       const result = await fileApi.upload(file);
       onFileChange(result.id, result.originalFilename);
     } catch {
-      alert('파일 업로드에 실패했어요.');
+      toast('파일 업로드에 실패했어요.', 'error');
     }
     e.target.value = '';
   };
