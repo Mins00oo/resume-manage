@@ -305,7 +305,7 @@ export default function ResumeEditorPage() {
       <div className="flex h-[calc(100dvh-56px)] md:h-[calc(100dvh-64px)]">
         {/* ─── Left: form ─── */}
         <div className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto min-h-0 lg:pb-8">
+          <div className="flex-1 overflow-y-auto min-h-0 lg:pb-8" style={{ paddingBottom: 'calc(120px + env(safe-area-inset-bottom, 0px))' }}>
             <div className="max-w-2xl mx-auto px-5 md:px-8 py-6 pb-8">
 
             {/* Title */}
@@ -671,10 +671,10 @@ export default function ResumeEditorPage() {
           </div>
           </div>
 
-          {/* Bottom bar (mobile) */}
+          {/* Bottom bar (mobile) — fixed above tab bar */}
           <div
-            className="shrink-0 lg:hidden"
-            style={{ marginBottom: 'calc(60px + env(safe-area-inset-bottom, 0px))' }}
+            className="fixed left-0 right-0 z-30 lg:hidden"
+            style={{ bottom: 'calc(60px + env(safe-area-inset-bottom, 0px))' }}
           >
             <ResumeBottomBar
               completion={0}
