@@ -48,7 +48,7 @@ function companyColor(name: string): string {
 }
 
 export default function JobApplyDetailPage() {
-  const { toast } = useToast();
+  const { toast, confirm } = useToast();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -229,10 +229,9 @@ export default function JobApplyDetailPage() {
               )}
               <button
                 type="button"
-                onClick={() => {
-                  if (window.confirm(`"${item.company}" 지원을 삭제할까요?`)) {
-                    deleteMutation.mutate();
-                  }
+                onClick={async () => {
+                  const ok = await confirm({ title: `"${item.company}" 지원을 삭제할까요?`, description: '삭제된 지원 내역은 복구할 수 없습니다.', confirmLabel: '삭제', variant: 'danger' });
+                  if (ok) deleteMutation.mutate();
                 }}
                 disabled={deleteMutation.isPending}
                 className="btn-ghost text-rose-600 hover:bg-rose-50 flex-1 md:flex-none"

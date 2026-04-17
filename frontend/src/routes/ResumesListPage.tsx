@@ -29,7 +29,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function ResumesListPage() {
-  const { toast } = useToast();
+  const { toast, confirm } = useToast();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('updatedAt');
@@ -195,10 +195,9 @@ export default function ResumesListPage() {
               resume={resume}
               onClick={() => navigate(`/resumes/${resume.id}`)}
               onDuplicate={() => duplicateMutation.mutate(resume.id)}
-              onDelete={() => {
-                if (confirm(`"${resume.title}" 이력서를 삭제할까요?`)) {
-                  deleteMutation.mutate(resume.id);
-                }
+              onDelete={async () => {
+                const ok = await confirm({ title: `"${resume.title}" 이력서를 삭제할까요?`, description: '삭제된 이력서는 복구할 수 없습니다.', confirmLabel: '삭제', variant: 'danger' });
+                if (ok) deleteMutation.mutate(resume.id);
               }}
               onSetMaster={() => setMasterMutation.mutate(resume.id)}
               onUnsetMaster={() => unsetMasterMutation.mutate(resume.id)}
