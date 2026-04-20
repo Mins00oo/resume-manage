@@ -15,6 +15,7 @@ import ResumeSidePanel from '../components/resume/ResumeSidePanel';
 import PdfUploadSection from '../components/resume/PdfUploadSection';
 import MonthYearPicker from '../components/common/MonthYearPicker';
 import { useToast } from '../components/common/Toast';
+import { syncCareers, syncEducations, syncCertificates, syncLanguages } from './resumeEditorSync';
 
 /* ─── constants ─── */
 
@@ -137,6 +138,8 @@ export default function ResumeEditorPage() {
 
   const initialized = useRef(false);
   const initialDocRef = useRef<string>('');
+  // 마지막으로 서버에서 받아온 detail — diff 기반 저장(섹션 item id 추적, 삭제 감지)에 사용
+  const initialDetailRef = useRef<ResumeDetail | null>(null);
 
   // Section refs for scroll-to
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -156,13 +159,14 @@ export default function ResumeEditorPage() {
   }, [isDirty]);
 
   /* Fetch */
-  const { data: detail, isLoading, error: fetchError } = useQuery({
+  const { data: detail, isLoading, error: fetchError, refetch } = useQuery({
     queryKey: ['resume', resumeId], queryFn: () => resumeApi.get(resumeId!), enabled: resumeId != null,
   });
 
   useEffect(() => {
     if (detail && !initialized.current) {
       initialized.current = true;
+      initialDetailRef.current = detail;
       const newDoc = detailToDocument(detail);
       setDoc(newDoc);
       initialDocRef.current = JSON.stringify(newDoc);
@@ -200,19 +204,20 @@ export default function ResumeEditorPage() {
     setSaving(true);
     try {
       let id = resumeId;
+      const isNewResume = id == null;
 
-      // New resume: create first
-      if (id == null) {
+      // 0. 이력서 루트 (create or updateTitle)
+      if (isNewResume) {
         id = await resumeApi.create(doc.title || '새 이력서');
-        queryClient.invalidateQueries({ queryKey: ['resumes'] });
-        navigate(`/resumes/${id}`, { replace: true });
       } else {
-        // Update title
-        await resumeApi.updateTitle(id, doc.title);
+        await resumeApi.updateTitle(id!, doc.title);
       }
 
-      // Save basic info
-      await resumeApi.updateBasicInfo(id, {
+      const resumeIdNum = id!;
+      const previous = initialDetailRef.current;
+
+      // 1. 기본 정보 (upsert)
+      await resumeApi.updateBasicInfo(resumeIdNum, {
         nameKo: doc.profile.name,
         email: doc.profile.email,
         phone: doc.profile.phone,
@@ -224,17 +229,84 @@ export default function ResumeEditorPage() {
         portfolioFileId: portfolioFileId,
       });
 
-      // Update initial snapshot after successful save
-      initialDocRef.current = JSON.stringify(doc);
+      // 2. 경력 (diff)
+      const prevCareers = previous?.careers.map((c) => c.career) ?? [];
+      const careerIdMap = await syncCareers(resumeIdNum, doc.experiences, prevCareers, expEmploymentTypes);
 
-      queryClient.invalidateQueries({ queryKey: ['resume', id] });
-      queryClient.invalidateQueries({ queryKey: ['resumes'] });
+      // 3. 프로젝트 — 현재 UI는 flat 리스트. 저장 시 첫 번째 경력에 귀속.
+      //    기존 프로젝트는 모두 삭제 후 재생성 (단순화).
+      const prevProjectsWithCareer = previous?.careers.flatMap((c) =>
+        c.projects.map((p) => ({ careerId: c.career.id, projectId: p.id })),
+      ) ?? [];
+      for (const p of prevProjectsWithCareer) {
+        await resumeApi.deleteCareerProject(resumeIdNum, p.careerId, p.projectId);
+      }
+      if (doc.projects.length > 0) {
+        // 프로젝트 저장을 위해서는 경력이 하나 이상 필요
+        const firstExp = doc.experiences[0];
+        const anchorCareerId = firstExp ? careerIdMap[firstExp.id] : null;
+        if (anchorCareerId == null) {
+          toast('프로젝트는 경력이 하나 이상 있어야 저장돼요.', 'warning');
+        } else {
+          for (let i = 0; i < doc.projects.length; i++) {
+            const proj = doc.projects[i];
+            const parts = proj.period.split(' - ');
+            await resumeApi.createCareerProject(resumeIdNum, anchorCareerId, {
+              title: proj.name,
+              startDate: parts[0] || null,
+              endDate: parts[1] || null,
+              description: proj.description,
+              orderIndex: i,
+            });
+          }
+        }
+      }
+
+      // 4. 학력 (diff)
+      await syncEducations(resumeIdNum, doc.education, previous?.educations ?? []);
+
+      // 5. 자격증 (diff)
+      await syncCertificates(resumeIdNum, doc.certifications, previous?.certificates ?? []);
+
+      // 6. 어학 (diff)
+      await syncLanguages(resumeIdNum, doc.languages, previous?.languages ?? []);
+
+      // 7. 자기소개 — FREE 타입 coverLetter 로 저장
+      await resumeApi.updateCoverLetter(resumeIdNum, {
+        type: 'FREE',
+        freeText: doc.about,
+      });
+
+      // 저장 후 서버 상태 재로딩 → doc의 로컬 id들이 서버 id로 바뀜
+      if (isNewResume) {
+        queryClient.invalidateQueries({ queryKey: ['resumes'] });
+        navigate(`/resumes/${resumeIdNum}`, { replace: true });
+        // 새 이력서는 라우트 변경으로 재마운트되며 fetch 가 다시 일어남
+      } else {
+        await queryClient.invalidateQueries({ queryKey: ['resume', resumeIdNum] });
+        await queryClient.invalidateQueries({ queryKey: ['resumes'] });
+        const next = await refetch();
+        if (next.data) {
+          initialDetailRef.current = next.data;
+          const refreshedDoc = detailToDocument(next.data);
+          setDoc(refreshedDoc);
+          initialDocRef.current = JSON.stringify(refreshedDoc);
+          // employmentType 재매핑
+          const types: Record<string, CareerEmploymentType | ''> = {};
+          next.data.careers.forEach((c) => {
+            types[String(c.career.id)] = (c.career.employmentType as CareerEmploymentType) ?? '';
+          });
+          setExpEmploymentTypes(types);
+        }
+      }
+
+      toast('저장했어요.', 'success');
     } catch (err) {
       toast(getErrorMessage(err), 'error');
     } finally {
       setSaving(false);
     }
-  }, [resumeId, doc, addressMain, addressDetail, photoFileId, careerDescFileId, portfolioFileId, navigate]);
+  }, [resumeId, doc, addressMain, addressDetail, photoFileId, careerDescFileId, portfolioFileId, expEmploymentTypes, navigate, refetch, toast]);
 
   /* Photo */
   const handlePhotoUpload = async (file: File) => {
