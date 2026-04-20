@@ -50,32 +50,6 @@ const LANGUAGE_OPTIONS: string[] = [
 ];
 const LANGUAGE_OTHER = '__OTHER__';
 
-/* ─── 담당업무 원문 작성 가이드 ───────────────────────────────────
-   AI 요약이 좋은 결과를 내려면 원문이 충분히 구체적이어야 한다.
-   개발자 사용자를 기준으로 원재료 형태의 예시 한 건을 제공한다. */
-
-const CAREER_WRITING_MUST_HAVE: { icon: string; label: string }[] = [
-  { icon: '📅', label: '프로젝트명 · 기간' },
-  { icon: '👤', label: '본인 역할 (리드 / 단독 / 주도 / 참여)' },
-  { icon: '🧰', label: '사용한 기술 스택' },
-  { icon: '📏', label: '규모 (사용자 수 / 화면 수 / 데이터량)' },
-  { icon: '📈', label: 'Before / After 비교 (숫자)' },
-];
-
-const CAREER_WRITING_BAD_EXAMPLE =
-  'CRM 프론트엔드를 개발했고, 여러 프로젝트에 참여하며 다양한 경험을 쌓았습니다.';
-
-const CAREER_WRITING_GOOD_EXAMPLE = `[CRM 대시보드 프론트엔드 고도화]
-기간: 2022.03 ~ 2024.08 (약 2년 6개월)
-역할: 프론트 3명 중 리드 (아키텍처 설계 + 핵심 모듈 직접 구현)
-기술: React 18, TypeScript, Redux-Toolkit, Vite, Storybook
-
-수행 내용:
-- 월 활성 사용자 5만 규모 B2B CRM 신규 기능 개발 및 운영
-- Webpack → Vite 마이그레이션 주도, 빌드 시간 40초 → 8초 단축
-- Storybook 기반 컴포넌트 문서화로 신규 UI 개발 공수 평균 30% 감소
-- 주니어 2명 코드 리뷰 및 온보딩 가이드 작성`;
-
 /* ─── helpers ─── */
 
 function getErrorMessage(err: unknown): string {
@@ -427,27 +401,6 @@ export default function ResumeEditorPage() {
   const moveEducation = (i: number, dir: -1 | 1) => setDoc((prev) => ({ ...prev, education: swap(prev.education, i, i + dir) }));
   const moveCert = (i: number, dir: -1 | 1) => setDoc((prev) => ({ ...prev, certifications: swap(prev.certifications, i, i + dir) }));
   const moveLang = (i: number, dir: -1 | 1) => setDoc((prev) => ({ ...prev, languages: swap(prev.languages, i, i + dir) }));
-
-  /** 담당업무에 작성 가이드 예시를 채운다. 기존 내용이 있으면 덮어쓰기 확인. */
-  const fillCareerExample = async (i: number) => {
-    const currentBullets = doc.experiences[i]?.bullets ?? [];
-    const currentLen = currentBullets
-      .map((b) => b.replace(/^[•*\-]\s*/, '').trim())
-      .filter(Boolean)
-      .join('\n')
-      .length;
-    if (currentLen > 0) {
-      const ok = await confirm({
-        title: '기존 내용을 예시로 덮어쓸까요?',
-        description: `이미 입력된 담당업무 내용(${currentLen}자)이 있어요. 예시는 참고용이니 본인 경험으로 꼭 바꾸신 뒤 저장해주세요.`,
-        confirmLabel: '덮어쓰기',
-        variant: 'danger',
-      });
-      if (!ok) return;
-    }
-    // 예시는 "원재료" 포맷 (• prefix 없음). 사용자가 본인 내용으로 고쳐쓰는 참고판.
-    updateExperience(i, 'bullets', CAREER_WRITING_GOOD_EXAMPLE.split('\n'));
-  };
 
   const handleToggleSection = (key: string) => {
     setHiddenSections((prev) => prev.includes(key) ? prev.filter((s) => s !== key) : [...prev, key]);
