@@ -23,24 +23,14 @@ function detailToDocument(detail: ResumeDetail): ResumeDocument {
     },
     about: bi?.shortIntro ?? '',
     experiences: detail.careers.map((c) => ({
-      id: String(c.career.id),
-      company: c.career.companyName ?? '',
-      role: c.career.position ?? '',
-      startDate: c.career.startDate ?? '',
-      endDate: c.career.isCurrent ? null : (c.career.endDate ?? ''),
-      location: c.career.department ?? '',
-      bullets: c.career.responsibilities ? c.career.responsibilities.split('\n').filter(Boolean) : [],
+      id: String(c.id),
+      company: c.companyName ?? '',
+      role: c.position ?? '',
+      startDate: c.startDate ?? '',
+      endDate: c.isCurrent ? null : (c.endDate ?? ''),
+      location: c.department ?? '',
+      bullets: c.responsibilities ? c.responsibilities.split('\n').filter(Boolean) : [],
     })),
-    projects: detail.careers.flatMap((c) =>
-      c.projects.map((p) => ({
-        id: String(p.id),
-        name: p.title ?? '',
-        role: '',
-        period: [p.startDate, p.endDate].filter(Boolean).join(' - '),
-        description: p.description ?? '',
-        bullets: [],
-      })),
-    ),
     education: detail.educations.map((e) => ({
       id: String(e.id),
       degreeType: e.degree ?? '',
@@ -56,11 +46,15 @@ function detailToDocument(detail: ResumeDetail): ResumeDocument {
       name: c.name ?? '',
       issuer: c.issuer ?? '',
       issuedAt: c.acquiredAt ?? '',
+      certificateNumber: c.certificateNumber ?? '',
+      score: c.score ?? '',
     })),
     languages: detail.languages.map((l) => ({
       id: String(l.id),
       name: l.language ?? '',
-      level: [l.testName, l.score].filter(Boolean).join(' '),
+      testName: l.testName ?? '',
+      score: l.score ?? '',
+      acquiredAt: l.acquiredAt ?? '',
     })),
   };
 }

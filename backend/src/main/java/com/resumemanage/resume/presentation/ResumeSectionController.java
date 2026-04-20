@@ -20,7 +20,6 @@ public class ResumeSectionController {
     private final ResumeBasicInfoService basicInfoService;
     private final ResumeEducationService educationService;
     private final ResumeCareerService careerService;
-    private final ResumeCareerProjectService careerProjectService;
     private final ResumeLanguageService languageService;
     private final ResumeCertificateService certificateService;
     private final ResumeAwardService awardService;
@@ -127,51 +126,6 @@ public class ResumeSectionController {
             @PathVariable Long sectionId
     ) {
         careerService.delete(resumeId, currentUser.userId(), sectionId);
-        return ApiResponse.ok();
-    }
-
-    // ── CareerProject (nested under Career) ─────────────────────────
-
-    @GetMapping("/careers/{careerId}/projects")
-    public ApiResponse<List<ResumeCareerProjectResponse>> listCareerProjects(
-            @AuthenticationPrincipal CurrentUser currentUser,
-            @PathVariable Long resumeId,
-            @PathVariable Long careerId
-    ) {
-        return ApiResponse.ok(careerProjectService.list(resumeId, currentUser.userId(), careerId));
-    }
-
-    @PostMapping("/careers/{careerId}/projects")
-    public ApiResponse<Map<String, Long>> createCareerProject(
-            @AuthenticationPrincipal CurrentUser currentUser,
-            @PathVariable Long resumeId,
-            @PathVariable Long careerId,
-            @Valid @RequestBody ResumeCareerProjectRequest request
-    ) {
-        Long id = careerProjectService.create(resumeId, currentUser.userId(), careerId, request);
-        return ApiResponse.ok(Map.of("id", id));
-    }
-
-    @PutMapping("/careers/{careerId}/projects/{projectId}")
-    public ApiResponse<Void> updateCareerProject(
-            @AuthenticationPrincipal CurrentUser currentUser,
-            @PathVariable Long resumeId,
-            @PathVariable Long careerId,
-            @PathVariable Long projectId,
-            @Valid @RequestBody ResumeCareerProjectRequest request
-    ) {
-        careerProjectService.update(resumeId, currentUser.userId(), careerId, projectId, request);
-        return ApiResponse.ok();
-    }
-
-    @DeleteMapping("/careers/{careerId}/projects/{projectId}")
-    public ApiResponse<Void> deleteCareerProject(
-            @AuthenticationPrincipal CurrentUser currentUser,
-            @PathVariable Long resumeId,
-            @PathVariable Long careerId,
-            @PathVariable Long projectId
-    ) {
-        careerProjectService.delete(resumeId, currentUser.userId(), careerId, projectId);
         return ApiResponse.ok();
     }
 

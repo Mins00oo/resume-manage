@@ -31,7 +31,6 @@ public class ResumeService {
     private final ResumeBasicInfoRepository basicInfoRepository;
     private final ResumeEducationRepository educationRepository;
     private final ResumeCareerRepository careerRepository;
-    private final ResumeCareerProjectRepository careerProjectRepository;
     private final ResumeLanguageRepository languageRepository;
     private final ResumeCertificateRepository certificateRepository;
     private final ResumeAwardRepository awardRepository;
@@ -114,9 +113,9 @@ public class ResumeService {
                     .build());
         }
 
-        // Deep copy: Careers + CareerProjects
+        // Deep copy: Careers
         for (ResumeCareer srcCareer : careerRepository.findAllByResumeIdOrderByOrderIndexAsc(resumeId)) {
-            ResumeCareer newCareer = careerRepository.save(ResumeCareer.builder()
+            careerRepository.save(ResumeCareer.builder()
                     .resume(copy)
                     .companyName(srcCareer.getCompanyName())
                     .position(srcCareer.getPosition())
@@ -124,21 +123,10 @@ public class ResumeService {
                     .startDate(srcCareer.getStartDate())
                     .endDate(srcCareer.getEndDate())
                     .isCurrent(srcCareer.isCurrent())
+                    .employmentType(srcCareer.getEmploymentType())
                     .responsibilities(srcCareer.getResponsibilities())
                     .orderIndex(srcCareer.getOrderIndex())
                     .build());
-
-            for (ResumeCareerProject srcProj : careerProjectRepository
-                    .findAllByCareerIdOrderByOrderIndexAsc(srcCareer.getId())) {
-                careerProjectRepository.save(ResumeCareerProject.builder()
-                        .career(newCareer)
-                        .title(srcProj.getTitle())
-                        .startDate(srcProj.getStartDate())
-                        .endDate(srcProj.getEndDate())
-                        .description(srcProj.getDescription())
-                        .orderIndex(srcProj.getOrderIndex())
-                        .build());
-            }
         }
 
         // Deep copy: Languages

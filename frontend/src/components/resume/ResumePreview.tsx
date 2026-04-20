@@ -154,52 +154,6 @@ export default function ResumePreview({ doc }: Props) {
         </Section>
       )}
 
-      {/* ---------- Projects ---------- */}
-      {doc.projects.length > 0 && (
-        <Section title="프로젝트" accent={accent} template={doc.template}>
-          {doc.projects.map((prj) => (
-            <div key={prj.id} style={{ marginBottom: '10pt' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'baseline',
-                  gap: '8pt',
-                }}
-              >
-                <div style={{ fontWeight: 700, fontSize: '11pt' }}>
-                  {prj.name}
-                  <span style={{ color: '#94a3b8', fontWeight: 400 }}> · {prj.role}</span>
-                </div>
-                <div style={{ fontSize: '8.5pt', color: '#64748b', whiteSpace: 'nowrap' }}>
-                  {prj.period}
-                </div>
-              </div>
-              {prj.description && (
-                <p style={{ fontSize: '9pt', color: '#475569', marginTop: '2pt', lineHeight: 1.5 }}>
-                  {prj.description}
-                </p>
-              )}
-              <ul
-                style={{
-                  marginTop: '3pt',
-                  paddingLeft: '12pt',
-                  fontSize: '9pt',
-                  color: '#334155',
-                  lineHeight: 1.5,
-                }}
-              >
-                {prj.bullets.map((b, i) => (
-                  <li key={i} style={{ marginBottom: '2pt' }}>
-                    {b}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </Section>
-      )}
-
       {/* ---------- Education ---------- */}
       {doc.education.length > 0 && (
         <Section title="학력" accent={accent} template={doc.template}>
@@ -246,12 +200,15 @@ export default function ResumePreview({ doc }: Props) {
           )}
           {doc.languages.length > 0 && (
             <Section title="언어" accent={accent} template={doc.template} compact>
-              {doc.languages.map((l) => (
-                <div key={l.id} style={{ marginBottom: '3pt', fontSize: '9pt' }}>
-                  <span style={{ fontWeight: 700 }}>{l.name}</span>
-                  <span style={{ color: '#94a3b8' }}> · {l.level}</span>
-                </div>
-              ))}
+              {doc.languages.map((l) => {
+                const detail = [l.testName, l.score].filter(Boolean).join(' ');
+                return (
+                  <div key={l.id} style={{ marginBottom: '3pt', fontSize: '9pt' }}>
+                    <span style={{ fontWeight: 700 }}>{l.name}</span>
+                    {detail && <span style={{ color: '#94a3b8' }}> · {detail}</span>}
+                  </div>
+                );
+              })}
             </Section>
           )}
         </div>

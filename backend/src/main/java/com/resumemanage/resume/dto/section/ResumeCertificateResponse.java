@@ -9,6 +9,8 @@ public record ResumeCertificateResponse(
         String name,
         String issuer,
         LocalDate acquiredAt,
+        String certificateNumber,
+        String score,
         short orderIndex
 ) {
     public static ResumeCertificateResponse from(ResumeCertificate entity) {
@@ -17,6 +19,8 @@ public record ResumeCertificateResponse(
                 entity.getName(),
                 entity.getIssuer(),
                 entity.getAcquiredAt(),
+                entity.getCertificateNumber(),
+                entity.getScore(),
                 entity.getOrderIndex()
         );
     }

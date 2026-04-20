@@ -9,8 +9,6 @@ import type {
   ResumeEducationRequest,
   ResumeCareer,
   ResumeCareerRequest,
-  ResumeCareerProject,
-  ResumeCareerProjectRequest,
   ResumeLanguage,
   ResumeLanguageRequest,
   ResumeCertificate,
@@ -165,56 +163,6 @@ export const resumeApi = {
   deleteCareer: (resumeId: number, sectionId: number): Promise<void> =>
     api
       .delete<ApiResponse<void>>(`/api/resumes/${resumeId}/careers/${sectionId}`)
-      .then(() => undefined),
-
-  /* ------------------------------------------------------------------ */
-  /* Career Projects                                                     */
-  /* ------------------------------------------------------------------ */
-
-  listCareerProjects: (resumeId: number, careerId: number): Promise<ResumeCareerProject[]> =>
-    api
-      .get<ApiResponse<ResumeCareerProject[]>>(
-        `/api/resumes/${resumeId}/careers/${careerId}/projects`,
-      )
-      .then((r) => r.data.data ?? []),
-
-  createCareerProject: (
-    resumeId: number,
-    careerId: number,
-    body: ResumeCareerProjectRequest,
-  ): Promise<ResumeCareerProject> =>
-    api
-      .post<ApiResponse<ResumeCareerProject>>(
-        `/api/resumes/${resumeId}/careers/${careerId}/projects`,
-        body,
-      )
-      .then((r) => {
-        if (!r.data.data) throw new Error('프로젝트 생성 응답이 비어 있어요.');
-        return r.data.data;
-      }),
-
-  updateCareerProject: (
-    resumeId: number,
-    careerId: number,
-    projectId: number,
-    body: ResumeCareerProjectRequest,
-  ): Promise<void> =>
-    api
-      .put<ApiResponse<void>>(
-        `/api/resumes/${resumeId}/careers/${careerId}/projects/${projectId}`,
-        body,
-      )
-      .then(() => undefined),
-
-  deleteCareerProject: (
-    resumeId: number,
-    careerId: number,
-    projectId: number,
-  ): Promise<void> =>
-    api
-      .delete<ApiResponse<void>>(
-        `/api/resumes/${resumeId}/careers/${careerId}/projects/${projectId}`,
-      )
       .then(() => undefined),
 
   /* ------------------------------------------------------------------ */

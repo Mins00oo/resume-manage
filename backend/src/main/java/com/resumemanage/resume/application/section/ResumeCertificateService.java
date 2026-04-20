@@ -39,6 +39,8 @@ public class ResumeCertificateService {
                 .name(req.name())
                 .issuer(req.issuer())
                 .acquiredAt(req.acquiredAt())
+                .certificateNumber(req.certificateNumber())
+                .score(req.score())
                 .orderIndex(req.orderIndex())
                 .build();
 
@@ -51,7 +53,8 @@ public class ResumeCertificateService {
         ResumeCertificate entity = certificateRepository.findById(sectionId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SECTION_NOT_FOUND));
 
-        entity.update(req.name(), req.issuer(), req.acquiredAt());
+        entity.update(req.name(), req.issuer(), req.acquiredAt(),
+                req.certificateNumber(), req.score());
         entity.changeOrder(req.orderIndex());
     }
 

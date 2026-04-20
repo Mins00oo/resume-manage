@@ -44,11 +44,6 @@ export default function ResumeSidePanel({
       filled: doc.experiences.length > 0,
     },
     {
-      key: 'projects',
-      label: '프로젝트',
-      filled: doc.projects.length > 0,
-    },
-    {
       key: 'careerDescription',
       label: '경력기술서',
       filled: careerDescFileId != null,

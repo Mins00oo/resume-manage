@@ -58,7 +58,10 @@ export async function syncCareers(
       endDate: exp.endDate === null ? null : toServerDate(exp.endDate),
       isCurrent: exp.endDate === null,
       employmentType: (employmentTypes[exp.id] || null) as CareerEmploymentType | null,
-      responsibilities: exp.bullets.filter(Boolean).join('\n'),
+      responsibilities: exp.bullets
+        .map((b) => b.replace(/^[•*\-]\s*/, '').trim())
+        .filter(Boolean)
+        .join('\n'),
       orderIndex: i,
     };
     const serverId = parseServerId(exp.id);
@@ -128,6 +131,8 @@ export async function syncCertificates(
       name: cert.name,
       issuer: cert.issuer,
       acquiredAt: toServerDate(cert.issuedAt),
+      certificateNumber: cert.certificateNumber ?? '',
+      score: cert.score ?? '',
       orderIndex: i,
     };
     const serverId = parseServerId(cert.id);
@@ -154,14 +159,11 @@ export async function syncLanguages(
 
   for (let i = 0; i < local.length; i++) {
     const lang = local[i];
-    // 로컬 level 필드는 "TOEIC 920 / Business" 같은 자유 문자열.
-    // 서버는 language / testName / score 로 나뉘어 있는데, UI 제약상 한 필드로 합쳐진 상태.
-    // 간단히 level 전체를 score 에 저장.
     const body = {
       language: lang.name,
-      testName: '',
-      score: lang.level,
-      acquiredAt: null,
+      testName: lang.testName ?? '',
+      score: lang.score ?? '',
+      acquiredAt: toServerDate(lang.acquiredAt),
       orderIndex: i,
     };
     const serverId = parseServerId(lang.id);

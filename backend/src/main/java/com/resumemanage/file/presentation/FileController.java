@@ -39,6 +39,16 @@ public class FileController {
         return ApiResponse.ok(UploadedFileResponse.from(uploaded));
     }
 
+    /** 파일 메타데이터만 조회 (파일명·크기·MIME). PDF 보기/다운로드 링크 표시용. */
+    @GetMapping("/{id}/meta")
+    public ApiResponse<UploadedFileResponse> meta(
+            @AuthenticationPrincipal CurrentUser me,
+            @PathVariable Long id
+    ) {
+        UploadedFile uploaded = uploadedFileService.getOwned(id, me.userId());
+        return ApiResponse.ok(UploadedFileResponse.from(uploaded));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Resource> download(
             @AuthenticationPrincipal CurrentUser me,

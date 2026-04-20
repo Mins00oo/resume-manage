@@ -119,17 +119,6 @@ export default function AppShell() {
               <div className="text-[15px] font-bold tracking-tight text-[var(--color-text-primary)]">Resume Manage</div>
             </div>
           )}
-          {/* Collapse toggle — desktop only */}
-          <button
-            type="button"
-            onClick={() => setCollapsed((c) => !c)}
-            className="hidden md:flex w-8 h-8 rounded-lg text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] items-center justify-center transition-colors shrink-0"
-            title={collapsed ? '사이드바 펼치기' : '사이드바 접기'}
-          >
-            <svg className={cn('w-4 h-4 transition-transform', collapsed ? 'rotate-180' : '')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-            </svg>
-          </button>
           {/* Close button — mobile only */}
           <button
             type="button"
@@ -228,6 +217,32 @@ export default function AppShell() {
             )}
           </div>
         </div>
+
+        {/* Floating collapse toggle — 사이드바 우측 가장자리 중앙 */}
+        <button
+          type="button"
+          onClick={() => setCollapsed((c) => !c)}
+          aria-label={collapsed ? '사이드바 펼치기' : '사이드바 접기'}
+          title={collapsed ? '사이드바 펼치기' : '사이드바 접기'}
+          className={cn(
+            'hidden md:flex absolute top-1/2 -right-3 -translate-y-1/2 z-40',
+            'w-6 h-6 rounded-full items-center justify-center',
+            'bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)]',
+            'text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)]',
+            'shadow-sm hover:shadow-md transition-all',
+            'opacity-60 hover:opacity-100',
+          )}
+        >
+          <svg
+            className={cn('w-3 h-3 transition-transform', collapsed ? '' : 'rotate-180')}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={3}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="m9 5 7 7-7 7" />
+          </svg>
+        </button>
       </aside>
 
       {/* Main */}

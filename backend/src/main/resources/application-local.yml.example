@@ -26,3 +26,17 @@ app:
       expiration-seconds: 86400
     oauth2:
       frontend-redirect-url: http://localhost:5173/oauth-callback
+  # Web Push (VAPID) — `npx web-push generate-vapid-keys` 로 발급 후 붙여넣기
+  web-push:
+    public-key: YOUR_VAPID_PUBLIC_KEY
+    private-key: YOUR_VAPID_PRIVATE_KEY
+    subject: "mailto:you@example.com"
+  # AI 교차검증 요약 — 3 모델 API 키
+  # 키가 비어있으면 /api/ai/career-summary 는 503 로 응답하고 다른 기능은 정상 동작
+  ai:
+    anthropic:
+      api-key: YOUR_ANTHROPIC_API_KEY
+    openai:
+      api-key: YOUR_OPENAI_API_KEY
+    google:
+      api-key: YOUR_GOOGLE_API_KEY
