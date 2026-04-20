@@ -180,7 +180,7 @@ export default function JobApplyDetailPage() {
         </div>
         <div className="p-4 md:p-6 pt-0">
           <div className="flex flex-col md:flex-row md:items-end justify-between -mt-8 gap-4">
-            <div className="flex items-end gap-3 md:gap-4">
+            <div className="flex items-end gap-3 md:gap-4 min-w-0 flex-1">
               <div
                 className="rounded-xl flex items-center justify-center text-white font-bold shrink-0 ring-1 ring-black/5 shadow-sm"
                 style={{
@@ -208,11 +208,11 @@ export default function JobApplyDetailPage() {
                 <div className="text-[13px] md:text-[14px] text-[var(--color-text-secondary)] truncate">{item.position}</div>
               </div>
             </div>
-            <div className="flex items-center gap-2 pb-1">
+            <div className="flex items-center gap-2 pb-1 flex-wrap md:flex-nowrap">
               <button
                 type="button"
                 onClick={() => (isEditing ? handleSaveEdit() : handleStartEdit())}
-                className="btn-outline flex-1 md:flex-none"
+                className="btn-outline flex-1 md:flex-none whitespace-nowrap"
                 disabled={updateMutation.isPending}
               >
                 <IconPencil className="w-4 h-4" />
@@ -222,7 +222,7 @@ export default function JobApplyDetailPage() {
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="btn-ghost flex-1 md:flex-none"
+                  className="btn-ghost flex-1 md:flex-none whitespace-nowrap"
                 >
                   취소
                 </button>
@@ -234,7 +234,7 @@ export default function JobApplyDetailPage() {
                   if (ok) deleteMutation.mutate();
                 }}
                 disabled={deleteMutation.isPending}
-                className="btn-ghost text-rose-600 hover:bg-rose-50 flex-1 md:flex-none"
+                className="btn-ghost text-rose-600 hover:bg-rose-50 flex-1 md:flex-none whitespace-nowrap"
               >
                 <IconTrash className="w-4 h-4" />
                 {deleteMutation.isPending ? '삭제 중...' : '삭제'}
@@ -325,7 +325,7 @@ export default function JobApplyDetailPage() {
             <div className="flex items-center justify-between mb-4">
               <div className="text-[15px] font-bold text-[var(--color-text-primary)]">기본 정보</div>
             </div>
-            <dl className="grid grid-cols-2 gap-5 text-[13px]">
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-[13px]">
               <Info label="회사" value={item.company} />
               <Info label="포지션" value={item.position ?? '-'} />
               <Info label="고용 형태" value={employmentLabel(item.employmentType)} />
@@ -338,10 +338,10 @@ export default function JobApplyDetailPage() {
                       href={item.jobPostingUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-indigo-600 hover:underline inline-flex items-center gap-1 truncate"
+                      className="text-indigo-600 hover:underline flex items-center gap-1 min-w-0"
                     >
-                      {item.jobPostingUrl}
-                      <IconArrowUpRight className="w-3 h-3" />
+                      <span className="truncate">{item.jobPostingUrl}</span>
+                      <IconArrowUpRight className="w-3 h-3 shrink-0" />
                     </a>
                   ) : (
                     '-'
@@ -461,7 +461,7 @@ function Info({
   wide?: boolean;
 }) {
   return (
-    <div className={wide ? 'col-span-2' : ''}>
+    <div className={`min-w-0 ${wide ? 'sm:col-span-2' : ''}`}>
       <dt className="text-[11px] font-semibold  text-[var(--color-text-secondary)] mb-1">
         {label}
       </dt>

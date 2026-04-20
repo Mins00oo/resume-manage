@@ -67,11 +67,11 @@ export default function HomePage() {
     <div className="space-y-7">
       {/* Greeting row */}
       <div className="flex items-end justify-between gap-4">
-        <div>
-          <div className="text-sm text-[var(--color-text-tertiary)] font-medium">
+        <div className="min-w-0 flex-1">
+          <div className="text-sm text-[var(--color-text-tertiary)] font-medium truncate">
             {displayName ? `안녕하세요, ${displayName}님` : '안녕하세요'}
           </div>
-          <div className="text-[18px] md:text-[22px] font-bold tracking-tight text-[var(--color-text-primary)] mt-0.5">
+          <div className="text-[18px] md:text-[22px] font-bold tracking-tight text-[var(--color-text-primary)] mt-0.5 break-keep">
             오늘도 커리어 한 걸음 나아가볼까요?
           </div>
         </div>

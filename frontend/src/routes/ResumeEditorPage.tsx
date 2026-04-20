@@ -375,7 +375,7 @@ export default function ResumeEditorPage() {
     <>
       <div className="flex flex-1 min-h-0">
         {/* ─── Left: form ─── */}
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 flex flex-col min-h-0 min-w-0">
           <div className="flex-1 overflow-y-auto min-h-0 lg:pb-8">
             <div className="max-w-2xl mx-auto px-5 md:px-8 py-6 pb-8">
 
@@ -755,7 +755,7 @@ export default function ResumeEditorPage() {
         </div>
 
         {/* ─── Right: side panel (desktop) ─── */}
-        <div className="hidden lg:flex flex-col w-[300px] border-l border-[var(--color-border-subtle)]">
+        <div className="hidden lg:flex flex-col w-[300px] shrink-0 border-l border-[var(--color-border-subtle)]">
           <ResumeSidePanel
             doc={doc}
             hiddenSections={hiddenSections}
