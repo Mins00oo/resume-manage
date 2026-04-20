@@ -15,7 +15,7 @@ import ResumeSidePanel from '../components/resume/ResumeSidePanel';
 import PdfUploadSection from '../components/resume/PdfUploadSection';
 import MonthYearPicker from '../components/common/MonthYearPicker';
 import { useToast } from '../components/common/Toast';
-import { syncCareers, syncEducations, syncCertificates, syncLanguages } from './resumeEditorSync';
+import { syncCareers, syncEducations, syncCertificates, syncLanguages, toServerDate } from './resumeEditorSync';
 
 /* ─── constants ─── */
 
@@ -253,8 +253,8 @@ export default function ResumeEditorPage() {
             const parts = proj.period.split(' - ');
             await resumeApi.createCareerProject(resumeIdNum, anchorCareerId, {
               title: proj.name,
-              startDate: parts[0] || null,
-              endDate: parts[1] || null,
+              startDate: toServerDate(parts[0]?.trim()),
+              endDate: toServerDate(parts[1]?.trim()),
               description: proj.description,
               orderIndex: i,
             });

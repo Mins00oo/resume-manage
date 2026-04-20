@@ -23,6 +23,20 @@ function parseServerId(localId: string): number | null {
   return Number.isFinite(n) && Number.isInteger(n) && n > 0 ? n : null;
 }
 
+/**
+ * MonthYearPicker 는 "YYYY-MM" 으로 저장하지만 서버 컬럼은 DATE (YYYY-MM-DD) 이다.
+ * 저장 직전 일자(day)를 1로 붙여 LocalDate 파싱이 성공하게 변환한다.
+ * 빈 문자열/null/undefined 는 null 로 그대로.
+ */
+export function toServerDate(v: string | null | undefined): string | null {
+  if (!v) return null;
+  const s = v.trim();
+  if (!s) return null;
+  if (/^\d{4}-\d{2}$/.test(s)) return s + '-01';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  return s; // 알 수 없는 형식은 그대로 보냄 (서버가 거절하면 에러 노출)
+}
+
 /** 경력 diff 저장. 로컬 id → 서버 id 매핑을 반환 (프로젝트 저장 시 사용). */
 export async function syncCareers(
   resumeId: number,
@@ -40,8 +54,8 @@ export async function syncCareers(
       companyName: exp.company,
       position: exp.role,
       department: exp.location,
-      startDate: exp.startDate || null,
-      endDate: exp.endDate,
+      startDate: toServerDate(exp.startDate),
+      endDate: exp.endDate === null ? null : toServerDate(exp.endDate),
       isCurrent: exp.endDate === null,
       employmentType: (employmentTypes[exp.id] || null) as CareerEmploymentType | null,
       responsibilities: exp.bullets.filter(Boolean).join('\n'),
@@ -81,8 +95,8 @@ export async function syncEducations(
       schoolName: edu.school,
       major: edu.degree,
       degree: (edu.degreeType || null) as ResumeEducation['degree'],
-      startDate: edu.startDate || null,
-      endDate: edu.endDate || null,
+      startDate: toServerDate(edu.startDate),
+      endDate: toServerDate(edu.endDate),
       graduationStatus: (edu.graduationStatus || null) as ResumeEducation['graduationStatus'],
       orderIndex: i,
     };
@@ -113,7 +127,7 @@ export async function syncCertificates(
     const body = {
       name: cert.name,
       issuer: cert.issuer,
-      acquiredAt: cert.issuedAt || null,
+      acquiredAt: toServerDate(cert.issuedAt),
       orderIndex: i,
     };
     const serverId = parseServerId(cert.id);
