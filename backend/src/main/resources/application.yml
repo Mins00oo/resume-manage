@@ -42,6 +42,19 @@ app:
     public-key: ${APP_WEB_PUSH_PUBLIC_KEY:}
     private-key: ${APP_WEB_PUSH_PRIVATE_KEY:}
     subject: ${APP_WEB_PUSH_SUBJECT:mailto:alstn7223@gmail.com}
+  ai:
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:}
+      model: ${AI_CLAUDE_MODEL:claude-opus-4-6}
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      model: ${AI_GPT_MODEL:gpt-5.4}
+    google:
+      api-key: ${GOOGLE_API_KEY:}
+      model: ${AI_GEMINI_MODEL:gemini-2.5-pro}
+    rate-limit:
+      per-user-per-minute: 3
+      max-raw-text-chars: 5000
 
 logging:
   level:

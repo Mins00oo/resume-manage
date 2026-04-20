@@ -31,23 +31,35 @@ public class ResumeCertificate {
     @Column(name = "acquired_at")
     private LocalDate acquiredAt;
 
+    @Column(name = "certificate_number", length = 100)
+    private String certificateNumber;
+
+    @Column(length = 50)
+    private String score;
+
     @Column(name = "order_index", nullable = false)
     private short orderIndex;
 
     @Builder
     private ResumeCertificate(Resume resume, String name, String issuer,
-                              LocalDate acquiredAt, short orderIndex) {
+                              LocalDate acquiredAt, String certificateNumber, String score,
+                              short orderIndex) {
         this.resume = resume;
         this.name = name;
         this.issuer = issuer;
         this.acquiredAt = acquiredAt;
+        this.certificateNumber = certificateNumber;
+        this.score = score;
         this.orderIndex = orderIndex;
     }
 
-    public void update(String name, String issuer, LocalDate acquiredAt) {
+    public void update(String name, String issuer, LocalDate acquiredAt,
+                       String certificateNumber, String score) {
         this.name = name;
         this.issuer = issuer;
         this.acquiredAt = acquiredAt;
+        this.certificateNumber = certificateNumber;
+        this.score = score;
     }
 
     public void changeOrder(short orderIndex) {

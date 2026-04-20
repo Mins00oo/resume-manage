@@ -510,7 +510,6 @@ export type ResumeDocument = {
   };
   about: string;
   experiences: Experience[];
-  projects: Project[];
   education: Education[];
   certifications: Certification[];
   languages: Language[];
@@ -524,16 +523,6 @@ export type Experience = {
   endDate: string | null;
   location: string;
   bullets: string[];
-};
-
-export type Project = {
-  id: string;
-  name: string;
-  role: string;
-  period: string;
-  description: string;
-  bullets: string[];
-  link?: string;
 };
 
 export type Education = {
@@ -552,12 +541,16 @@ export type Certification = {
   name: string;
   issuer: string;
   issuedAt: string;
+  certificateNumber?: string;
+  score?: string;
 };
 
 export type Language = {
   id: string;
-  name: string;
-  level: string;
+  name: string;            // 언어명 (예: 영어)
+  testName?: string;       // 시험명 (예: TOEIC)
+  score?: string;          // 점수/등급 (예: 920, IH, 5급)
+  acquiredAt?: string;     // 취득일 "YYYY-MM"
 };
 
 export const mockResumeDocument: ResumeDocument = {
@@ -607,32 +600,6 @@ export const mockResumeDocument: ResumeDocument = {
       ],
     },
   ],
-  projects: [
-    {
-      id: 'prj1',
-      name: 'Resume Manage',
-      role: '개인 프로젝트',
-      period: '2025.09 - 현재',
-      description:
-        '이력서 · 지원 관리 · AI 자소서 교정 통합 PWA. React 19, Vite, Spring Boot.',
-      bullets: [
-        'Offline-first PWA 설계, Service Worker 로 iOS 푸시까지 구현',
-        '3개 LLM (Claude/GPT/Gemini) 파이프라인을 백엔드에서 직렬 호출',
-      ],
-      link: 'github.com/minsoo-kim/resume-manage',
-    },
-    {
-      id: 'prj2',
-      name: 'Plate Design System',
-      role: '리드',
-      period: '2023.04 - 2024.12',
-      description: '사내 15개 프로덕트가 사용하는 React 디자인 시스템',
-      bullets: [
-        'Headless 컴포넌트 구조로 런타임 스타일 오버라이드 지원',
-        'Visual Regression Test 환경 구축으로 릴리스 신뢰성 확보',
-      ],
-    },
-  ],
   education: [
     {
       id: 'edu1',
@@ -654,7 +621,7 @@ export const mockResumeDocument: ResumeDocument = {
     },
   ],
   languages: [
-    { id: 'lan1', name: '영어', level: 'Business (TOEIC 920)' },
-    { id: 'lan2', name: '한국어', level: 'Native' },
+    { id: 'lan1', name: '영어', testName: 'TOEIC', score: '920', acquiredAt: '2023-11' },
+    { id: 'lan2', name: '한국어', score: 'Native' },
   ],
 };

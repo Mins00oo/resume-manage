@@ -1,8 +1,6 @@
 package com.resumemanage.resume.application;
 
 import com.resumemanage.resume.domain.Resume;
-import com.resumemanage.resume.domain.ResumeCareer;
-import com.resumemanage.resume.domain.ResumeCareerProject;
 import com.resumemanage.resume.domain.ResumeCoverLetter;
 import com.resumemanage.resume.dto.ResumeDetailResponse;
 import com.resumemanage.resume.dto.section.*;
@@ -10,7 +8,6 @@ import com.resumemanage.resume.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,7 +21,6 @@ public class ResumeDetailAssembler {
     private final ResumeBasicInfoRepository basicInfoRepository;
     private final ResumeEducationRepository educationRepository;
     private final ResumeCareerRepository careerRepository;
-    private final ResumeCareerProjectRepository careerProjectRepository;
     private final ResumeLanguageRepository languageRepository;
     private final ResumeCertificateRepository certificateRepository;
     private final ResumeAwardRepository awardRepository;
@@ -43,18 +39,9 @@ public class ResumeDetailAssembler {
                 .findAllByResumeIdOrderByOrderIndexAsc(resumeId)
                 .stream().map(ResumeEducationResponse::from).toList();
 
-        List<ResumeCareer> careerEntities = careerRepository
-                .findAllByResumeIdOrderByOrderIndexAsc(resumeId);
-
-        List<ResumeCareerWithProjectsResponse> careers = new ArrayList<>(careerEntities.size());
-        for (ResumeCareer career : careerEntities) {
-            List<ResumeCareerProject> projects = careerProjectRepository
-                    .findAllByCareerIdOrderByOrderIndexAsc(career.getId());
-            careers.add(new ResumeCareerWithProjectsResponse(
-                    ResumeCareerResponse.from(career),
-                    projects.stream().map(ResumeCareerProjectResponse::from).toList()
-            ));
-        }
+        List<ResumeCareerResponse> careers = careerRepository
+                .findAllByResumeIdOrderByOrderIndexAsc(resumeId)
+                .stream().map(ResumeCareerResponse::from).toList();
 
         List<ResumeLanguageResponse> languages = languageRepository
                 .findAllByResumeIdOrderByOrderIndexAsc(resumeId)

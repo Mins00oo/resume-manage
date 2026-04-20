@@ -17,7 +17,7 @@ public record ResumeDetailResponse(
         LocalDateTime updatedAt,
         ResumeBasicInfoResponse basicInfo,
         List<ResumeEducationResponse> educations,
-        List<ResumeCareerWithProjectsResponse> careers,
+        List<ResumeCareerResponse> careers,
         List<ResumeLanguageResponse> languages,
         List<ResumeCertificateResponse> certificates,
         List<ResumeAwardResponse> awards,

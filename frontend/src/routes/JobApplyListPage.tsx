@@ -194,7 +194,7 @@ export default function JobApplyListPage() {
         {/* Row 1: view tabs + primary CTA */}
         <div className="flex items-center justify-between gap-3 border-b border-[var(--color-border-subtle)] px-4 py-3">
           <div
-            className="flex items-center gap-0.5 p-1 rounded-xl overflow-x-auto"
+            className="flex items-center gap-0.5 p-1 rounded-xl overflow-x-auto min-w-0"
             style={{ background: 'var(--color-bg-muted)' }}
           >
             {VIEWS.map(({ key, label, Icon }) => (

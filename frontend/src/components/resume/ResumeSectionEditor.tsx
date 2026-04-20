@@ -1,11 +1,10 @@
-import type { ResumeDocument, Experience, Project, Education, Certification, Language } from '../../mocks/data';
+import type { ResumeDocument, Experience, Education, Certification, Language } from '../../mocks/data';
 import { IconPlus, IconTrash } from '../icons/Icons';
 
 type SectionKey =
   | 'profile'
   | 'about'
   | 'experiences'
-  | 'projects'
   | 'education'
   | 'certifications'
   | 'languages';
@@ -20,7 +19,6 @@ export default function ResumeSectionEditor({ doc, setDoc, section }: Props) {
   if (section === 'profile') return <ProfileEditor doc={doc} setDoc={setDoc} />;
   if (section === 'about') return <AboutEditor doc={doc} setDoc={setDoc} />;
   if (section === 'experiences') return <ExperienceEditor doc={doc} setDoc={setDoc} />;
-  if (section === 'projects') return <ProjectEditor doc={doc} setDoc={setDoc} />;
   if (section === 'education') return <EducationEditor doc={doc} setDoc={setDoc} />;
   if (section === 'certifications') return <CertEditor doc={doc} setDoc={setDoc} />;
   if (section === 'languages') return <LangEditor doc={doc} setDoc={setDoc} />;
@@ -310,113 +308,6 @@ function ExperienceEditor({ doc, setDoc }: { doc: ResumeDocument; setDoc: (d: Re
   );
 }
 
-/* ---------- Projects ---------- */
-
-function ProjectEditor({ doc, setDoc }: { doc: ResumeDocument; setDoc: (d: ResumeDocument) => void }) {
-  const add = () => {
-    const n: Project = {
-      id: `prj${Date.now()}`,
-      name: '',
-      role: '',
-      period: '',
-      description: '',
-      bullets: [''],
-    };
-    setDoc({ ...doc, projects: [...doc.projects, n] });
-  };
-  const update = (id: string, patch: Partial<Project>) =>
-    setDoc({
-      ...doc,
-      projects: doc.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)),
-    });
-  const remove = (id: string) =>
-    setDoc({ ...doc, projects: doc.projects.filter((p) => p.id !== id) });
-
-  return (
-    <div>
-      <SectionHeader title="프로젝트" subtitle="인상적인 프로젝트를 3개 이내로" onAdd={add} />
-      {doc.projects.map((prj) => (
-        <Card key={prj.id} onRemove={() => remove(prj.id)}>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>프로젝트명</Label>
-              <input
-                className="input-base"
-                value={prj.name}
-                onChange={(e) => update(prj.id, { name: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label>역할</Label>
-              <input
-                className="input-base"
-                value={prj.role}
-                onChange={(e) => update(prj.id, { role: e.target.value })}
-              />
-            </div>
-          </div>
-          <div className="mt-3">
-            <Label>기간</Label>
-            <input
-              className="input-base"
-              placeholder="2024.01 - 2024.12"
-              value={prj.period}
-              onChange={(e) => update(prj.id, { period: e.target.value })}
-            />
-          </div>
-          <div className="mt-3">
-            <Label>한줄 설명</Label>
-            <input
-              className="input-base"
-              value={prj.description}
-              onChange={(e) => update(prj.id, { description: e.target.value })}
-            />
-          </div>
-          <div className="mt-3">
-            <div className="flex items-center justify-between mb-1.5">
-              <Label>주요 성과</Label>
-              <button
-                type="button"
-                className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-700"
-                onClick={() => update(prj.id, { bullets: [...prj.bullets, ''] })}
-              >
-                + 항목 추가
-              </button>
-            </div>
-            <div className="space-y-2">
-              {prj.bullets.map((b, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <span className="text-slate-300 text-sm mt-2.5">•</span>
-                  <input
-                    className="input-base flex-1"
-                    value={b}
-                    onChange={(e) => {
-                      const next = [...prj.bullets];
-                      next[i] = e.target.value;
-                      update(prj.id, { bullets: next });
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      update(prj.id, {
-                        bullets: prj.bullets.filter((_, idx) => idx !== i),
-                      })
-                    }
-                    className="w-9 h-9 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center shrink-0"
-                  >
-                    <IconTrash className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
 /* ---------- Education ---------- */
 
 function EducationEditor({ doc, setDoc }: { doc: ResumeDocument; setDoc: (d: ResumeDocument) => void }) {
@@ -518,7 +409,7 @@ function CertEditor({ doc, setDoc }: { doc: ResumeDocument; setDoc: (d: ResumeDo
 
 function LangEditor({ doc, setDoc }: { doc: ResumeDocument; setDoc: (d: ResumeDocument) => void }) {
   const add = () => {
-    const n: Language = { id: `lan${Date.now()}`, name: '', level: '' };
+    const n: Language = { id: `lan${Date.now()}`, name: '', testName: '', score: '' };
     setDoc({ ...doc, languages: [...doc.languages, n] });
   };
   const update = (id: string, patch: Partial<Language>) =>
@@ -534,18 +425,27 @@ function LangEditor({ doc, setDoc }: { doc: ResumeDocument; setDoc: (d: ResumeDo
       <SectionHeader title="언어" subtitle="사용 가능한 언어와 수준" onAdd={add} />
       {doc.languages.map((l) => (
         <Card key={l.id} onRemove={() => remove(l.id)}>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <Label>언어</Label>
               <input className="input-base" value={l.name} onChange={(e) => update(l.id, { name: e.target.value })} />
             </div>
             <div>
-              <Label>레벨</Label>
+              <Label>시험</Label>
               <input
                 className="input-base"
-                value={l.level}
-                onChange={(e) => update(l.id, { level: e.target.value })}
-                placeholder="예: Business"
+                value={l.testName ?? ''}
+                onChange={(e) => update(l.id, { testName: e.target.value })}
+                placeholder="TOEIC"
+              />
+            </div>
+            <div>
+              <Label>점수/등급</Label>
+              <input
+                className="input-base"
+                value={l.score ?? ''}
+                onChange={(e) => update(l.id, { score: e.target.value })}
+                placeholder="920 / IH / 5급"
               />
             </div>
           </div>

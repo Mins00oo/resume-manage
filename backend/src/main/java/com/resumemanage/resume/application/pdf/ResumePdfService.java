@@ -6,12 +6,10 @@ import com.resumemanage.common.exception.ErrorCode;
 import com.resumemanage.resume.domain.Resume;
 import com.resumemanage.resume.domain.ResumeBasicInfo;
 import com.resumemanage.resume.domain.ResumeCareer;
-import com.resumemanage.resume.domain.ResumeCareerProject;
 import com.resumemanage.resume.domain.ResumeCoverLetter;
 import com.resumemanage.resume.domain.ResumeCoverLetterSection;
 import com.resumemanage.resume.repository.ResumeAwardRepository;
 import com.resumemanage.resume.repository.ResumeBasicInfoRepository;
-import com.resumemanage.resume.repository.ResumeCareerProjectRepository;
 import com.resumemanage.resume.repository.ResumeCareerRepository;
 import com.resumemanage.resume.repository.ResumeCertificateRepository;
 import com.resumemanage.resume.repository.ResumeCoverLetterRepository;
@@ -30,7 +28,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -57,7 +54,6 @@ public class ResumePdfService {
     private final ResumeBasicInfoRepository resumeBasicInfoRepository;
     private final ResumeEducationRepository resumeEducationRepository;
     private final ResumeCareerRepository resumeCareerRepository;
-    private final ResumeCareerProjectRepository resumeCareerProjectRepository;
     private final ResumeLanguageRepository resumeLanguageRepository;
     private final ResumeCertificateRepository resumeCertificateRepository;
     private final ResumeAwardRepository resumeAwardRepository;
@@ -89,12 +85,6 @@ public class ResumePdfService {
         ResumeBasicInfo basicInfo = resumeBasicInfoRepository.findById(resumeId).orElse(null);
 
         List<ResumeCareer> careers = resumeCareerRepository.findAllByResumeIdOrderByOrderIndexAsc(resumeId);
-        List<ResumePdfData.CareerWithProjects> careerWithProjects = new ArrayList<>(careers.size());
-        for (ResumeCareer career : careers) {
-            List<ResumeCareerProject> projects =
-                    resumeCareerProjectRepository.findAllByCareerIdOrderByOrderIndexAsc(career.getId());
-            careerWithProjects.add(new ResumePdfData.CareerWithProjects(career, projects));
-        }
 
         ResumeCoverLetter coverLetter = resumeCoverLetterRepository.findById(resumeId).orElse(null);
         List<ResumeCoverLetterSection> coverLetterSections = coverLetter == null
@@ -111,7 +101,7 @@ public class ResumePdfService {
                 resume.getUpdatedAt(),
                 basicInfo,
                 resumeEducationRepository.findAllByResumeIdOrderByOrderIndexAsc(resumeId),
-                careerWithProjects,
+                careers,
                 resumeLanguageRepository.findAllByResumeIdOrderByOrderIndexAsc(resumeId),
                 resumeCertificateRepository.findAllByResumeIdOrderByOrderIndexAsc(resumeId),
                 resumeAwardRepository.findAllByResumeIdOrderByOrderIndexAsc(resumeId),

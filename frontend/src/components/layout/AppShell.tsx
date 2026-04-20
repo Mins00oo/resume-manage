@@ -77,7 +77,9 @@ export default function AppShell() {
   const page = matchPageTitle(location.pathname);
   const isImmersive = /^\/resumes\/(new|\d+)/.test(location.pathname);
 
-  const sidebarWidth = collapsed ? 'w-16' : 'w-64';
+  // NOTE: Tailwind JIT 는 소스에서 완전한 클래스명을 스캔해야 하므로
+  // `md:${...}` 같은 템플릿 문자열은 생성되지 않는다. 반드시 리터럴로 작성한다.
+  const sidebarWidthMd = collapsed ? 'md:w-16' : 'md:w-64';
   const mainPadding = collapsed ? 'md:pl-16' : 'md:pl-64';
 
   return (
@@ -96,7 +98,7 @@ export default function AppShell() {
           'fixed inset-y-0 left-0 flex flex-col z-50 transition-all duration-300 ease-in-out',
           'md:translate-x-0 md:z-30',
           sidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full',
-          `md:${sidebarWidth}`,
+          sidebarWidthMd,
         )}
         style={{
           background: 'var(--color-bg-surface)',
@@ -117,17 +119,6 @@ export default function AppShell() {
               <div className="text-[15px] font-bold tracking-tight text-[var(--color-text-primary)]">Resume Manage</div>
             </div>
           )}
-          {/* Collapse toggle — desktop only */}
-          <button
-            type="button"
-            onClick={() => setCollapsed((c) => !c)}
-            className="hidden md:flex w-8 h-8 rounded-lg text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] items-center justify-center transition-colors shrink-0"
-            title={collapsed ? '사이드바 펼치기' : '사이드바 접기'}
-          >
-            <svg className={cn('w-4 h-4 transition-transform', collapsed ? 'rotate-180' : '')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-            </svg>
-          </button>
           {/* Close button — mobile only */}
           <button
             type="button"
@@ -226,6 +217,32 @@ export default function AppShell() {
             )}
           </div>
         </div>
+
+        {/* Floating collapse toggle — 사이드바 우측 가장자리 중앙 */}
+        <button
+          type="button"
+          onClick={() => setCollapsed((c) => !c)}
+          aria-label={collapsed ? '사이드바 펼치기' : '사이드바 접기'}
+          title={collapsed ? '사이드바 펼치기' : '사이드바 접기'}
+          className={cn(
+            'hidden md:flex absolute top-1/2 -right-3 -translate-y-1/2 z-40',
+            'w-6 h-6 rounded-full items-center justify-center',
+            'bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)]',
+            'text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)]',
+            'shadow-sm hover:shadow-md transition-all',
+            'opacity-60 hover:opacity-100',
+          )}
+        >
+          <svg
+            className={cn('w-3 h-3 transition-transform', collapsed ? '' : 'rotate-180')}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={3}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="m9 5 7 7-7 7" />
+          </svg>
+        </button>
       </aside>
 
       {/* Main */}
@@ -242,22 +259,22 @@ export default function AppShell() {
             borderBottom: '1px solid var(--color-border-subtle)',
           }}
         >
-          <div className="flex items-center justify-between h-14 md:h-16 px-4 md:px-8">
-            <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center justify-between gap-3 h-14 md:h-16 px-4 md:px-8">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <button
                 type="button"
                 onClick={() => setSidebarOpen(true)}
-                className="md:hidden w-9 h-9 -ml-1 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors"
+                className="md:hidden w-9 h-9 -ml-1 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] flex items-center justify-center transition-colors shrink-0"
                 aria-label="메뉴 열기"
               >
                 <IconMenu className="w-5 h-5" />
               </button>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <h1 className="text-[16px] md:text-[18px] font-bold tracking-tight text-[var(--color-text-primary)] truncate">{page.title}</h1>
                 <p className="text-[11px] md:text-[12px] text-[var(--color-text-tertiary)] mt-0.5 truncate hidden md:block">{page.subtitle}</p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 md:gap-2">
+            <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
               <button
                 type="button"
                 onClick={toggleTheme}

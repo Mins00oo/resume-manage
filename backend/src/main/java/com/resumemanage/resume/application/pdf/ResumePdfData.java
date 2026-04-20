@@ -3,7 +3,6 @@ package com.resumemanage.resume.application.pdf;
 import com.resumemanage.resume.domain.ResumeAward;
 import com.resumemanage.resume.domain.ResumeBasicInfo;
 import com.resumemanage.resume.domain.ResumeCareer;
-import com.resumemanage.resume.domain.ResumeCareerProject;
 import com.resumemanage.resume.domain.ResumeCertificate;
 import com.resumemanage.resume.domain.ResumeCoverLetter;
 import com.resumemanage.resume.domain.ResumeCoverLetterSection;
@@ -26,7 +25,7 @@ public record ResumePdfData(
         LocalDateTime updatedAt,
         ResumeBasicInfo basicInfo,
         List<ResumeEducation> educations,
-        List<CareerWithProjects> careers,
+        List<ResumeCareer> careers,
         List<ResumeLanguage> languages,
         List<ResumeCertificate> certificates,
         List<ResumeAward> awards,
@@ -35,14 +34,4 @@ public record ResumePdfData(
         List<ResumeCoverLetterSection> coverLetterSections,
         Set<String> hiddenSections
 ) {
-
-    /**
-     * 경력 엔티티와 그 경력에 속한 프로젝트 리스트를 함께 묶는 중첩 타입.
-     * 템플릿에서 career.projects 로 프로젝트를 순회하기 쉽도록 구성된다.
-     */
-    public record CareerWithProjects(
-            ResumeCareer career,
-            List<ResumeCareerProject> projects
-    ) {
-    }
 }

@@ -222,27 +222,18 @@
     <!-- Careers -->
     <div class="card" th:if="${!hiddenSections.contains('CAREERS') and careers != null and !careers.isEmpty()}">
         <h2>경력</h2>
-        <div class="item" th:each="cwp : ${careers}">
-            <div class="title" th:text="${cwp.career.companyName}">회사명</div>
+        <div class="item" th:each="career : ${careers}">
+            <div class="title" th:text="${career.companyName}">회사명</div>
             <div class="sub">
-                <span th:if="${cwp.career.position}" th:text="${cwp.career.position}">직무</span>
-                <span th:if="${cwp.career.department}" th:text="' · ' + ${cwp.career.department}">부서</span>
+                <span th:if="${career.position}" th:text="${career.position}">직무</span>
+                <span th:if="${career.department}" th:text="' · ' + ${career.department}">부서</span>
             </div>
             <div class="date">
-                <span th:if="${cwp.career.startDate}" th:text="${#temporals.format(cwp.career.startDate, 'yyyy-MM')}">2020-03</span>
-                <span th:if="${cwp.career.isCurrent()}"> ~ 재직 중</span>
-                <span th:if="${!cwp.career.isCurrent() and cwp.career.endDate != null}" th:text="' ~ ' + ${#temporals.format(cwp.career.endDate, 'yyyy-MM')}">~ 2023-12</span>
+                <span th:if="${career.startDate}" th:text="${#temporals.format(career.startDate, 'yyyy-MM')}">2020-03</span>
+                <span th:if="${career.isCurrent()}"> ~ 재직 중</span>
+                <span th:if="${!career.isCurrent() and career.endDate != null}" th:text="' ~ ' + ${#temporals.format(career.endDate, 'yyyy-MM')}">~ 2023-12</span>
             </div>
-            <div class="desc" th:if="${cwp.career.responsibilities != null}" th:text="${cwp.career.responsibilities}">주요 업무</div>
-
-            <div class="project" th:each="p : ${cwp.projects}">
-                <div class="ptitle" th:text="${p.title}">프로젝트 제목</div>
-                <div class="date">
-                    <span th:if="${p.startDate}" th:text="${#temporals.format(p.startDate, 'yyyy-MM')}">2021-01</span>
-                    <span th:if="${p.endDate}" th:text="' ~ ' + ${#temporals.format(p.endDate, 'yyyy-MM')}">~ 2021-06</span>
-                </div>
-                <div class="desc" th:if="${p.description != null}" th:text="${p.description}">설명</div>
-            </div>
+            <div class="desc" th:if="${career.responsibilities != null}" th:text="${career.responsibilities}">주요 업무</div>
         </div>
     </div>
 

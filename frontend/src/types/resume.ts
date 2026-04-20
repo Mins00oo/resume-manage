@@ -68,20 +68,6 @@ export type ResumeCareer = {
   orderIndex: number;
 };
 
-export type ResumeCareerProject = {
-  id: number;
-  title: string | null;
-  startDate: string | null;
-  endDate: string | null;
-  description: string | null;
-  orderIndex: number;
-};
-
-export type ResumeCareerWithProjects = {
-  career: ResumeCareer;
-  projects: ResumeCareerProject[];
-};
-
 export type ResumeLanguage = {
   id: number;
   language: string | null;
@@ -96,6 +82,8 @@ export type ResumeCertificate = {
   name: string | null;
   issuer: string | null;
   acquiredAt: string | null;
+  certificateNumber: string | null;
+  score: string | null;
   orderIndex: number;
 };
 
@@ -141,7 +129,7 @@ export type ResumeDetail = {
   updatedAt: string;
   basicInfo: ResumeBasicInfo | null;
   educations: ResumeEducation[];
-  careers: ResumeCareerWithProjects[];
+  careers: ResumeCareer[];
   languages: ResumeLanguage[];
   certificates: ResumeCertificate[];
   awards: ResumeAward[];
@@ -198,14 +186,6 @@ export type ResumeCareerRequest = {
   orderIndex: number;
 };
 
-export type ResumeCareerProjectRequest = {
-  title?: string;
-  startDate?: string | null;
-  endDate?: string | null;
-  description?: string;
-  orderIndex: number;
-};
-
 export type ResumeLanguageRequest = {
   language?: string;
   testName?: string;
@@ -218,6 +198,8 @@ export type ResumeCertificateRequest = {
   name?: string;
   issuer?: string;
   acquiredAt?: string | null;
+  certificateNumber?: string;
+  score?: string;
   orderIndex: number;
 };
 
